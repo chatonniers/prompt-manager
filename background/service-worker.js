@@ -54,6 +54,10 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   await chrome.storage.local.set({ prompts: defaults });
 });
 
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("manager/manager.html") });
+});
+
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== "toggle-overlay") return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
