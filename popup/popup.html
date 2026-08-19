@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAP Prompt Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="popup-root">
+    <div id="popup-header">
+      <div class="popup-title">
+        SAP Demo Prompt Manager
+        <span class="popup-subtitle">by Sylvain Chatonnier</span>
+      </div>
+      <div id="popup-badge" class="popup-badge" style="display:none"></div>
+    </div>
+
+    <div id="popup-search-wrap">
+      <input id="popup-search" type="text" placeholder="Search prompts…" autocomplete="off" spellcheck="false"/>
+    </div>
+
+    <div id="popup-body">
+      <div class="popup-section-label" id="label-favs">⭐ Favorites</div>
+      <div id="popup-favs"></div>
+      <div class="popup-section-label" id="label-recent">🕐 Recent</div>
+      <div id="popup-recent"></div>
+      <div class="popup-section-label" id="label-results" style="display:none">Results</div>
+      <div id="popup-results"></div>
+    </div>
+
+    <div id="popup-footer">
+      <button id="popup-open-manager">Open Prompt Manager</button>
+      <span id="popup-shortcut-hint">Ctrl+Shift+Space</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

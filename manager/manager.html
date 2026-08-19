@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAP Demo Prompt Manager</title>
+  <script type="module" src="../assets/ui5-bundle.js"></script>
+  <link rel="stylesheet" href="manager.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Top bar -->
+    <header id="top-bar">
+      <div id="top-bar-left">
+        <div id="app-title">
+          <span class="title-main">SAP Demo Prompt Manager</span>
+          <span class="title-sub">by Sylvain Chatonnier</span>
+        </div>
+      </div>
+      <div id="top-bar-right">
+        <button class="tb-btn tb-btn-primary" id="btn-new-prompt">+ New Prompt</button>
+        <button class="tb-btn" id="btn-import">↑ Import</button>
+        <button class="tb-btn" id="btn-export">↓ Export</button>
+        <input type="file" id="import-file-input" accept=".json" style="display:none"/>
+      </div>
+    </header>
+
+    <div id="main-layout">
+      <!-- Sidebar -->
+      <nav id="sidebar">
+        <div class="nav-section-label">LIBRARY</div>
+        <button class="nav-item active" data-view="all">
+          <span class="nav-icon">≡</span> All Prompts
+          <span class="nav-badge" id="nav-count-all"></span>
+        </button>
+        <button class="nav-item" data-view="favorites">
+          <span class="nav-icon">★</span> Favorites
+          <span class="nav-badge" id="nav-count-favs"></span>
+        </button>
+
+        <div class="nav-section-label">BY STORY FLOW</div>
+        <div id="nav-flows"></div>
+
+        <div class="nav-section-label">BY SOLUTION</div>
+        <div id="nav-solutions"></div>
+
+        <div class="nav-divider"></div>
+        <button class="nav-item" data-view="import-export">
+          <span class="nav-icon">⇄</span> Import / Export
+        </button>
+        <button class="nav-item" data-view="settings">
+          <span class="nav-icon">⚙</span> Settings
+        </button>
+      </nav>
+
+      <!-- Content area -->
+      <main id="content">
+        <!-- Search bar -->
+        <div id="list-toolbar">
+          <input id="list-search" type="text" placeholder="Search all prompts…" autocomplete="off" spellcheck="false"/>
+          <div id="sort-controls">
+            <label>Sort:
+              <select id="sort-select">
+                <option value="updated">Last Updated</option>
+                <option value="title">Title A–Z</option>
+                <option value="usage">Most Used</option>
+                <option value="created">Date Created</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- Prompt list view -->
+        <div id="view-list">
+          <div id="prompt-grid"></div>
+        </div>
+
+        <!-- Import/Export view -->
+        <div id="view-import-export" style="display:none">
+          <div class="view-card">
+            <h2>Export Prompts</h2>
+            <p>Download all your prompts as a JSON file to share with colleagues or back up your library.</p>
+            <button class="action-btn primary" id="do-export">↓ Download prompts.json</button>
+          </div>
+          <div class="view-card">
+            <h2>Import Prompts</h2>
+            <p>Import a previously exported JSON file. Choose merge (keep existing) or replace (overwrite all).</p>
+            <div class="import-row">
+              <button class="action-btn" id="do-import-btn">Choose JSON file…</button>
+              <input type="file" id="do-import-input" accept=".json" style="display:none"/>
+              <label><input type="radio" name="import-mode" value="merge" checked/> Merge (keep existing)</label>
+              <label><input type="radio" name="import-mode" value="replace"/> Replace all</label>
+            </div>
+            <div id="import-status" style="display:none" class="import-status"></div>
+          </div>
+        </div>
+
+        <!-- Settings view -->
+        <div id="view-settings" style="display:none">
+          <div class="view-card">
+            <h2>Extension Settings</h2>
+            <div class="setting-row">
+              <label class="setting-label">
+                <input type="checkbox" id="setting-auto-filter" checked/>
+                Auto-filter prompts by detected SAP tool
+              </label>
+              <p class="setting-hint">When enabled, the overlay shows only prompts matching the current SAP solution.</p>
+            </div>
+            <div class="setting-row">
+              <label class="setting-label">Keyboard shortcut</label>
+              <p class="setting-hint">Use <kbd>Ctrl+Shift+Space</kbd> to toggle the overlay on any page. Change in <a href="edge://extensions/shortcuts" target="_blank">Edge extension shortcuts</a>.</p>
+            </div>
+            <button class="action-btn primary" id="do-save-settings">Save Settings</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Edit / Create modal -->
+  <div id="modal-backdrop" style="display:none">
+    <div id="modal">
+      <div id="modal-header">
+        <h2 id="modal-title">New Prompt</h2>
+        <button class="modal-close-btn" id="modal-close">✕</button>
+      </div>
+      <div id="modal-body">
+        <div class="field-row">
+          <label>Title <span class="req">*</span></label>
+          <input type="text" id="f-title" placeholder="Short display name…" maxlength="120"/>
+        </div>
+        <div class="field-row">
+          <label>Prompt Body <span class="req">*</span></label>
+          <textarea id="f-body" placeholder="The full prompt text that will be copied to clipboard…" rows="6"></textarea>
+          <span class="char-count" id="f-body-count">0 chars</span>
+        </div>
+        <div class="field-row-2col">
+          <div class="field-col">
+            <label>Story Flow</label>
+            <select id="f-story-flow">
+              <option value="">— Select —</option>
+              <option>Procure-to-Pay</option>
+              <option>Order-to-Cash</option>
+              <option>Plan-to-Inventory</option>
+              <option>Hire-to-Retire</option>
+              <option>Record-to-Report</option>
+              <option>Lead-to-Cash</option>
+              <option>Design-to-Operate</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field-col">
+            <label>Favorite</label>
+            <label class="toggle-label">
+              <input type="checkbox" id="f-favorite"/> Mark as Favorite ★
+            </label>
+          </div>
+        </div>
+        <div class="field-row">
+          <label>Solutions</label>
+          <div class="checkbox-group" id="f-solutions">
+            <label><input type="checkbox" value="S/4HANA"/> S/4HANA</label>
+            <label><input type="checkbox" value="IBP"/> IBP</label>
+            <label><input type="checkbox" value="Ariba"/> Ariba</label>
+            <label><input type="checkbox" value="Joule"/> Joule</label>
+            <label><input type="checkbox" value="Joule Studio"/> Joule Studio</label>
+            <label><input type="checkbox" value="BTP"/> BTP</label>
+            <label><input type="checkbox" value="Datasphere"/> Datasphere</label>
+            <label><input type="checkbox" value="SuccessFactors"/> SuccessFactors</label>
+          </div>
+        </div>
+        <div class="field-row">
+          <label>Tags <span class="hint">(press Enter to add)</span></label>
+          <div class="tag-input-wrap" id="tag-input-wrap">
+            <input type="text" id="f-tag-input" placeholder="Add a tag…"/>
+          </div>
+          <div id="f-tags-preview" class="tags-preview"></div>
+        </div>
+        <div class="field-row">
+          <label>Landscapes <span class="hint">(tenant URLs / system names)</span></label>
+          <div id="f-landscapes-list"></div>
+          <button type="button" class="add-row-btn" id="f-add-landscape">+ Add Landscape</button>
+        </div>
+        <div class="field-row">
+          <label>Notes <span class="hint">(internal, not copied)</span></label>
+          <textarea id="f-notes" placeholder="Demo tips, context notes…" rows="3"></textarea>
+        </div>
+      </div>
+      <div id="modal-footer">
+        <button class="action-btn" id="modal-cancel">Cancel</button>
+        <button class="action-btn primary" id="modal-save">Save Prompt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm delete modal -->
+  <div id="confirm-backdrop" style="display:none">
+    <div id="confirm-modal">
+      <p id="confirm-msg">Delete this prompt?</p>
+      <div class="confirm-actions">
+        <button class="action-btn" id="confirm-cancel">Cancel</button>
+        <button class="action-btn danger" id="confirm-ok">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/storage.js"></script>
+  <script src="manager.js"></script>
+</body>
+</html>

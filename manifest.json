@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "SAP Demo Prompt Manager",
+  "version": "1.0.0",
+  "description": "Store, organise, and copy SAP supply chain demo prompts with one keystroke. By Sylvain Chatonnier.",
+  "author": "Sylvain Chatonnier",
+  "icons": {
+    "16":  "assets/icons/icon16.png",
+    "32":  "assets/icons/icon32.png",
+    "48":  "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "SAP Prompt Manager"
+  },
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "shared/url-detector.js",
+        "shared/search.js",
+        "content/content-script.js"
+      ],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "storage",
+    "clipboardWrite",
+    "activeTab"
+  ],
+  "commands": {
+    "toggle-overlay": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space",
+        "mac": "Command+Shift+Space"
+      },
+      "description": "Toggle the SAP Prompt Manager overlay"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*", "assets/icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "options_page": "manager/manager.html"
+}

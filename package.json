@@ -1,0 +1,20 @@
+{
+  "name": "sap-demo-prompt-manager",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0"
+  },
+  "dependencies": {
+    "@ui5/webcomponents": "^2.0.0",
+    "@ui5/webcomponents-fiori": "^2.0.0",
+    "@ui5/webcomponents-icons": "^2.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}
