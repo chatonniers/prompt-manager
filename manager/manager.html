@@ -101,56 +101,64 @@
 
         <!-- Settings view -->
         <div id="view-settings" style="display:none">
-          <div class="view-card">
-            <h2 id="settings-title">Extension Settings</h2>
-            <div class="setting-row">
-              <label class="setting-label">
-                <input type="checkbox" id="setting-auto-filter" checked/>
-                <span id="setting-auto-filter-label">Auto-filter prompts by detected SAP tool</span>
-              </label>
-              <p class="setting-hint" id="setting-auto-filter-hint">When enabled, the overlay shows only prompts matching the current SAP solution.</p>
-            </div>
-            <div class="setting-row">
-              <label class="setting-label" id="setting-shortcut-label">Keyboard shortcut</label>
-              <p class="setting-hint">Use <kbd>Ctrl+Shift+Space</kbd> to toggle the overlay on any page. Change in <a href="edge://extensions/shortcuts" target="_blank">Edge extension shortcuts</a>.</p>
-            </div>
-            <button class="action-btn primary" id="do-save-settings">Save Settings</button>
-          </div>
-
-          <!-- Admin: Solutions -->
-          <div class="view-card admin-card">
-            <div class="admin-card-header">
-              <div>
-                <h2 id="admin-sol-title">Solutions</h2>
-                <p id="admin-sol-desc">Manage the list of SAP solutions available when creating or filtering prompts.</p>
+          <div class="settings-grid">
+            <!-- Left column: preferences -->
+            <div class="settings-col">
+              <div class="view-card">
+                <h2 id="settings-title">Extension Settings</h2>
+                <div class="setting-row">
+                  <label class="setting-label">
+                    <input type="checkbox" id="setting-auto-filter" checked/>
+                    <span id="setting-auto-filter-label">Auto-filter by detected SAP tool</span>
+                  </label>
+                  <p class="setting-hint" id="setting-auto-filter-hint">The overlay shows only prompts matching the current SAP solution.</p>
+                </div>
+                <div class="setting-row">
+                  <label class="setting-label" id="setting-shortcut-label">Keyboard shortcut</label>
+                  <p class="setting-hint"><kbd>Ctrl+Shift+Space</kbd> toggles the overlay. Change in <a href="edge://extensions/shortcuts" target="_blank">Edge shortcuts</a>.</p>
+                </div>
+                <button class="action-btn primary" id="do-save-settings">Save Settings</button>
               </div>
-              <button class="action-btn primary" id="btn-add-solution">+ Add Solution</button>
             </div>
-            <div class="admin-list" id="admin-solutions-list"></div>
-          </div>
 
-          <!-- Admin: Story Flows -->
-          <div class="view-card admin-card">
-            <div class="admin-card-header">
-              <div>
-                <h2 id="admin-flow-title">Story Flows</h2>
-                <p id="admin-flow-desc">Manage the end-to-end demo story flows used to organise and filter prompts.</p>
+            <!-- Right column: admin panels -->
+            <div class="settings-col">
+              <!-- Admin: Solutions -->
+              <div class="view-card admin-card">
+                <div class="admin-card-header">
+                  <div>
+                    <h2 id="admin-sol-title">Solutions</h2>
+                    <p id="admin-sol-desc">SAP solutions available when creating or filtering prompts.</p>
+                  </div>
+                  <button class="action-btn primary" id="btn-add-solution">+ Add</button>
+                </div>
+                <div class="admin-list" id="admin-solutions-list"></div>
               </div>
-              <button class="action-btn primary" id="btn-add-flow">+ Add Story Flow</button>
-            </div>
-            <div class="admin-list" id="admin-flows-list"></div>
-          </div>
 
-          <!-- Admin: Landscapes -->
-          <div class="view-card admin-card">
-            <div class="admin-card-header">
-              <div>
-                <h2 id="admin-ls-title">Landscapes</h2>
-                <p id="admin-ls-desc">Manage the shared landscape catalogue (tenant URLs, system names) available when tagging prompts.</p>
+              <!-- Admin: Story Flows -->
+              <div class="view-card admin-card">
+                <div class="admin-card-header">
+                  <div>
+                    <h2 id="admin-flow-title">Story Flows</h2>
+                    <p id="admin-flow-desc">End-to-end demo story flows for organising prompts.</p>
+                  </div>
+                  <button class="action-btn primary" id="btn-add-flow">+ Add</button>
+                </div>
+                <div class="admin-list" id="admin-flows-list"></div>
               </div>
-              <button class="action-btn primary" id="btn-add-landscape-admin">+ Add Landscape</button>
+
+              <!-- Admin: Landscapes -->
+              <div class="view-card admin-card">
+                <div class="admin-card-header">
+                  <div>
+                    <h2 id="admin-ls-title">Landscapes</h2>
+                    <p id="admin-ls-desc">Tenant URLs and system names for tagging prompts.</p>
+                  </div>
+                  <button class="action-btn primary" id="btn-add-landscape-admin">+ Add</button>
+                </div>
+                <div class="admin-list" id="admin-landscapes-list"></div>
+              </div>
             </div>
-            <div class="admin-list" id="admin-landscapes-list"></div>
           </div>
         </div>
       </main>
