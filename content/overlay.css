@@ -60,6 +60,12 @@
   opacity: 1;
 }
 
+/* When user has dragged the panel, switch to absolute coords — JS removes transition */
+#sap-pm-panel.sap-pm-dragged {
+  transform: none !important;
+  transition: opacity 0.22s ease;
+}
+
 /* Header */
 #sap-pm-header {
   display: flex;
@@ -69,6 +75,12 @@
   background: var(--sap-pm-brand);
   color: #fff;
   flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+#sap-pm-header.sap-pm-dragging {
+  cursor: grabbing;
 }
 
 .sap-pm-logo {

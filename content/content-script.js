@@ -25,6 +25,54 @@
     });
   }
 
+  // --- Drag-to-reposition ---
+  let _dragState = null;
+
+  function initDrag(panel) {
+    const header = panel.querySelector("#sap-pm-header");
+
+    // Restore saved position from previous session
+    chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (s) => {
+      const pos = s?.overlayPos;
+      if (pos) applyPos(panel, pos.left, pos.top);
+    });
+
+    header.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".sap-pm-close-btn")) return;
+      e.preventDefault();
+      const rect = panel.getBoundingClientRect();
+      _dragState = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
+      header.classList.add("sap-pm-dragging");
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!_dragState) return;
+      const dx = e.clientX - _dragState.startX;
+      const dy = e.clientY - _dragState.startY;
+      const newLeft = Math.max(0, Math.min(window.innerWidth  - panel.offsetWidth,  _dragState.origLeft + dx));
+      const newTop  = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, _dragState.origTop  + dy));
+      applyPos(panel, newLeft, newTop);
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!_dragState) return;
+      header.classList.remove("sap-pm-dragging");
+      const rect = panel.getBoundingClientRect();
+      chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (s) => {
+        const updated = Object.assign({}, s || {}, { overlayPos: { left: rect.left, top: rect.top } });
+        chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", settings: updated });
+      });
+      _dragState = null;
+    });
+  }
+
+  function applyPos(panel, left, top) {
+    panel.classList.add("sap-pm-dragged");
+    panel.style.left  = left + "px";
+    panel.style.top   = top  + "px";
+    panel.style.right = "auto";
+  }
+
   function buildOverlay() {
     const el = document.createElement("div");
     el.id = OVERLAY_ID;
@@ -60,6 +108,7 @@
     el.querySelector("#sap-pm-search-input").addEventListener("input", (e) => {
       renderList(e.target.value);
     });
+    initDrag(el.querySelector("#sap-pm-panel"));
     return el;
   }
 
