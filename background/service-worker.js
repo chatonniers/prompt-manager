@@ -72,6 +72,14 @@ async function handleMessage(msg) {
   switch (msg.type) {
     case "GET_PROMPTS": return getPrompts();
     case "GET_SETTINGS": return getSettings();
+    case "GET_CATALOG": {
+      const d = await chrome.storage.local.get("catalog");
+      return d.catalog || null;
+    }
+    case "SAVE_CATALOG": {
+      await chrome.storage.local.set({ catalog: msg.catalog });
+      return { ok: true };
+    }
     case "SAVE_SETTINGS": {
       const cur = await getSettings();
       await chrome.storage.local.set({ settings: { ...cur, ...msg.settings } });

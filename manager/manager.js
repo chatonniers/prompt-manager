@@ -2,8 +2,10 @@
 
 // StorageAPI is loaded via <script src="../shared/storage.js"> before this file
 
-const STORY_FLOWS = ["Procure-to-Pay","Order-to-Cash","Plan-to-Inventory","Hire-to-Retire","Record-to-Report","Lead-to-Cash","Design-to-Operate","Other"];
-const SOLUTIONS   = ["S/4HANA","IBP","Ariba","Joule","Joule Studio","BTP","Datasphere","SuccessFactors"];
+// These are populated from storage on init — no longer hardcoded constants
+let STORY_FLOWS = [];
+let SOLUTIONS   = [];
+let LANDSCAPES  = [];
 
 let allPrompts = [];
 let editingId  = null;
@@ -13,12 +15,21 @@ let pendingDeleteId = null;
 
 // ── Startup ────────────────────────────────────────────────────────────────
 async function init() {
-  allPrompts = await StorageAPI.getAllPrompts();
+  const [prompts, catalog] = await Promise.all([
+    StorageAPI.getAllPrompts(),
+    StorageAPI.getCatalog()
+  ]);
+  allPrompts = prompts;
+  STORY_FLOWS = catalog.storyFlows;
+  SOLUTIONS   = catalog.solutions;
+  LANDSCAPES  = catalog.landscapes;
+
   buildSidebarFlows();
   buildSidebarSolutions();
   renderGrid();
   updateNavBadges();
   loadSettings();
+  renderAdminPanels();
   bindEvents();
 }
 
@@ -170,22 +181,30 @@ function openEdit(id) {
   document.getElementById("modal-title").textContent = p ? "Edit Prompt" : "New Prompt";
   document.getElementById("f-title").value = p?.title || "";
   document.getElementById("f-body").value = p?.body || "";
-  document.getElementById("f-story-flow").value = p?.storyFlow || "";
   document.getElementById("f-favorite").checked = p?.isFavorite || false;
   document.getElementById("f-notes").value = p?.notes || "";
 
-  // Solutions checkboxes
-  document.querySelectorAll("#f-solutions input[type=checkbox]").forEach(cb => {
-    cb.checked = (p?.solutions || []).includes(cb.value);
-  });
+  // Rebuild Story Flow dropdown from catalog
+  const sfSelect = document.getElementById("f-story-flow");
+  sfSelect.innerHTML = `<option value="">— Select —</option>` +
+    STORY_FLOWS.map(f => `<option${p?.storyFlow === f ? " selected" : ""}>${esc(f)}</option>`).join("");
+
+  // Rebuild Solutions checkboxes from catalog
+  const solGroup = document.getElementById("f-solutions");
+  solGroup.innerHTML = SOLUTIONS.map(s => `
+    <label>
+      <input type="checkbox" value="${esc(s)}"${(p?.solutions||[]).includes(s) ? " checked" : ""}/>
+      ${esc(s)}
+    </label>`).join("");
 
   // Tags
   currentTags = [...(p?.tags || [])];
   renderTagChips();
 
-  // Landscapes
+  // Landscapes — populate from catalog + prompt's own values merged
+  const allLandscapes = [...new Set([...LANDSCAPES, ...(p?.landscapes||[])])];
   currentLandscapes = [...(p?.landscapes || [])];
-  renderLandscapeRows();
+  renderLandscapeRows(allLandscapes);
 
   updateBodyCount();
   document.getElementById("modal-backdrop").style.display = "flex";
@@ -214,11 +233,17 @@ function renderTagChips() {
   });
 }
 
-function renderLandscapeRows() {
+function renderLandscapeRows(catalogLandscapes) {
+  const catalog = catalogLandscapes || LANDSCAPES;
   const container = document.getElementById("f-landscapes-list");
+  // Rebuild datalist
+  let dl = document.getElementById("landscape-datalist");
+  if (!dl) { dl = document.createElement("datalist"); dl.id = "landscape-datalist"; document.body.appendChild(dl); }
+  dl.innerHTML = catalog.map(l => `<option value="${esc(l)}"/>`).join("");
+
   container.innerHTML = currentLandscapes.map((l, i) => `
     <div class="landscape-row" data-idx="${i}">
-      <input type="text" value="${esc(l)}" placeholder="e.g. https://my12345.ibpcloud.sap.com"/>
+      <input type="text" list="landscape-datalist" value="${esc(l)}" placeholder="e.g. https://my12345.ibpcloud.sap.com"/>
       <button class="landscape-remove" title="Remove">×</button>
     </div>`).join("");
   container.querySelectorAll(".landscape-row").forEach(row => {
@@ -292,6 +317,221 @@ async function doDelete() {
   showToast("Prompt deleted");
 }
 
+// ── Admin panels (Solutions / Story Flows / Landscapes) ────────────────────
+
+function renderAdminPanels() {
+  renderAdminList("admin-solutions-list",  SOLUTIONS,  "solution");
+  renderAdminList("admin-flows-list",      STORY_FLOWS, "flow");
+  renderAdminList("admin-landscapes-list", LANDSCAPES,  "landscape");
+}
+
+function inUseCount(type, value) {
+  if (type === "solution")  return allPrompts.filter(p => (p.solutions||[]).includes(value)).length;
+  if (type === "flow")      return allPrompts.filter(p => p.storyFlow === value).length;
+  if (type === "landscape") return allPrompts.filter(p => (p.landscapes||[]).includes(value)).length;
+  return 0;
+}
+
+function renderAdminList(containerId, items, type) {
+  const el = document.getElementById(containerId);
+  if (!items.length) {
+    el.innerHTML = `<div class="admin-empty">No items yet. Click "+ Add" to create one.</div>`;
+    return;
+  }
+  el.innerHTML = items.map((item, idx) => {
+    const count = inUseCount(type, item);
+    return `
+      <div class="admin-row" data-idx="${idx}" data-type="${type}">
+        <span class="admin-drag-handle" title="Drag to reorder">⠿</span>
+        <input class="admin-item-input" type="text" value="${esc(item)}" data-original="${esc(item)}"/>
+        <span class="admin-in-use ${count ? 'has-uses' : ''}" title="${count} prompt${count !== 1 ? 's' : ''} use this">
+          ${count ? `${count} prompt${count !== 1 ? 's' : ''}` : 'unused'}
+        </span>
+        <button class="admin-save-btn" title="Save rename" style="display:none">✓</button>
+        <button class="admin-del-btn ${count ? 'has-uses' : ''}" title="${count ? `Used by ${count} prompt${count !== 1 ? 's' : ''} — will be removed from them` : 'Delete'}">✕</button>
+      </div>`;
+  }).join("");
+
+  // Bind inline edit events
+  el.querySelectorAll(".admin-row").forEach(row => {
+    const idx   = parseInt(row.dataset.idx);
+    const input = row.querySelector(".admin-item-input");
+    const saveBtn = row.querySelector(".admin-save-btn");
+    const delBtn  = row.querySelector(".admin-del-btn");
+
+    input.addEventListener("input", () => {
+      const changed = input.value.trim() !== input.dataset.original;
+      saveBtn.style.display = changed ? "" : "none";
+    });
+
+    saveBtn.addEventListener("click", () => renameItem(type, idx, input.value.trim()));
+
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") renameItem(type, idx, input.value.trim());
+      if (e.key === "Escape") {
+        input.value = input.dataset.original;
+        saveBtn.style.display = "none";
+      }
+    });
+
+    delBtn.addEventListener("click", () => deleteItem(type, idx));
+  });
+
+  // Drag-to-reorder
+  bindDragReorder(el, type);
+}
+
+function getList(type) {
+  if (type === "solution")  return SOLUTIONS;
+  if (type === "flow")      return STORY_FLOWS;
+  if (type === "landscape") return LANDSCAPES;
+}
+
+async function persistCatalog() {
+  await StorageAPI.saveCatalog({ solutions: SOLUTIONS, storyFlows: STORY_FLOWS, landscapes: LANDSCAPES });
+}
+
+async function addItem(type, value) {
+  const list = getList(type);
+  const v = value.trim();
+  if (!v) return;
+  if (list.includes(v)) { showToast("Already exists"); return; }
+  list.push(v);
+  await persistCatalog();
+  renderAdminPanels();
+  refreshAfterCatalogChange();
+  showToast(`"${v}" added`);
+}
+
+async function renameItem(type, idx, newVal) {
+  const list = getList(type);
+  const oldVal = list[idx];
+  if (!newVal) return;
+  if (newVal === oldVal) return;
+  if (list.includes(newVal)) { showToast("Name already exists"); return; }
+
+  list[idx] = newVal;
+  await persistCatalog();
+
+  // Cascade rename in all prompts
+  const prompts = await StorageAPI.getAllPrompts();
+  let changed = false;
+  prompts.forEach(p => {
+    if (type === "flow" && p.storyFlow === oldVal) { p.storyFlow = newVal; changed = true; }
+    if (type === "solution") {
+      const i = (p.solutions||[]).indexOf(oldVal);
+      if (i >= 0) { p.solutions[i] = newVal; changed = true; }
+    }
+    if (type === "landscape") {
+      const i = (p.landscapes||[]).indexOf(oldVal);
+      if (i >= 0) { p.landscapes[i] = newVal; changed = true; }
+    }
+  });
+  if (changed) await chrome.storage.local.set({ prompts });
+  allPrompts = await StorageAPI.getAllPrompts();
+
+  renderAdminPanels();
+  refreshAfterCatalogChange();
+  showToast(`Renamed to "${newVal}"`);
+}
+
+async function deleteItem(type, idx) {
+  const list = getList(type);
+  const val = list[idx];
+  const count = inUseCount(type, val);
+
+  if (count > 0) {
+    const ok = confirm(`"${val}" is used by ${count} prompt${count !== 1 ? 's' : ''}.\nDeleting it will remove it from those prompts. Continue?`);
+    if (!ok) return;
+    // Remove from all prompts
+    const prompts = await StorageAPI.getAllPrompts();
+    prompts.forEach(p => {
+      if (type === "flow" && p.storyFlow === val) p.storyFlow = "";
+      if (type === "solution") p.solutions = (p.solutions||[]).filter(s => s !== val);
+      if (type === "landscape") p.landscapes = (p.landscapes||[]).filter(l => l !== val);
+    });
+    await chrome.storage.local.set({ prompts });
+    allPrompts = await StorageAPI.getAllPrompts();
+  }
+
+  list.splice(idx, 1);
+  await persistCatalog();
+  renderAdminPanels();
+  refreshAfterCatalogChange();
+  showToast(`"${val}" deleted`);
+}
+
+function bindDragReorder(container, type) {
+  let dragIdx = null;
+
+  container.querySelectorAll(".admin-row").forEach(row => {
+    row.setAttribute("draggable", "true");
+
+    row.addEventListener("dragstart", () => {
+      dragIdx = parseInt(row.dataset.idx);
+      row.classList.add("dragging");
+    });
+
+    row.addEventListener("dragend", () => {
+      row.classList.remove("dragging");
+      container.querySelectorAll(".admin-row").forEach(r => r.classList.remove("drag-over"));
+    });
+
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+      container.querySelectorAll(".admin-row").forEach(r => r.classList.remove("drag-over"));
+      row.classList.add("drag-over");
+    });
+
+    row.addEventListener("drop", async e => {
+      e.preventDefault();
+      const dropIdx = parseInt(row.dataset.idx);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+      const list = getList(type);
+      const [moved] = list.splice(dragIdx, 1);
+      list.splice(dropIdx, 0, moved);
+      await persistCatalog();
+      renderAdminPanels();
+      refreshAfterCatalogChange();
+    });
+  });
+}
+
+function refreshAfterCatalogChange() {
+  buildSidebarFlows();
+  buildSidebarSolutions();
+  renderGrid();
+  updateNavBadges();
+}
+
+// ── Admin inline-add (triggered by "+ Add" buttons) ────────────────────────
+function promptAddItem(type, containerId) {
+  const container = document.getElementById(containerId);
+  // Remove any existing inline-add row
+  container.querySelector(".admin-add-row")?.remove();
+
+  const row = document.createElement("div");
+  row.className = "admin-row admin-add-row";
+  row.innerHTML = `
+    <span class="admin-drag-handle" style="visibility:hidden">⠿</span>
+    <input class="admin-item-input" type="text" placeholder="Enter name…" style="border-color:#0070F2"/>
+    <button class="action-btn primary admin-confirm-add">Add</button>
+    <button class="action-btn admin-cancel-add">Cancel</button>`;
+  container.appendChild(row);
+
+  const input = row.querySelector(".admin-item-input");
+  input.focus();
+
+  row.querySelector(".admin-confirm-add").addEventListener("click", async () => {
+    await addItem(type, input.value);
+  });
+  row.querySelector(".admin-cancel-add").addEventListener("click", () => row.remove());
+  input.addEventListener("keydown", async e => {
+    if (e.key === "Enter") await addItem(type, input.value);
+    if (e.key === "Escape") row.remove();
+  });
+}
+
 // ── Nav / View switching ────────────────────────────────────────────────────
 function setView(view) {
   currentView = view;
@@ -300,6 +540,7 @@ function setView(view) {
   document.getElementById("list-toolbar").style.display       = showList ? "" : "none";
   document.getElementById("view-import-export").style.display = view === "import-export" ? "" : "none";
   document.getElementById("view-settings").style.display      = view === "settings"      ? "" : "none";
+  if (view === "settings") renderAdminPanels();
 }
 
 function setActiveNav(btn) {
@@ -459,6 +700,14 @@ function bindEvents() {
 
   // Settings save
   document.getElementById("do-save-settings").addEventListener("click", saveSettings);
+
+  // Admin: add buttons
+  document.getElementById("btn-add-solution").addEventListener("click", () =>
+    promptAddItem("solution", "admin-solutions-list"));
+  document.getElementById("btn-add-flow").addEventListener("click", () =>
+    promptAddItem("flow", "admin-flows-list"));
+  document.getElementById("btn-add-landscape-admin").addEventListener("click", () =>
+    promptAddItem("landscape", "admin-landscapes-list"));
 
   // Keyboard
   document.addEventListener("keydown", e => {

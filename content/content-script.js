@@ -32,8 +32,7 @@
       <div id="sap-pm-panel">
         <div id="sap-pm-header">
           <div class="sap-pm-logo">
-            SAP Demo Prompt Manager
-            <span>by Sylvain Chatonnier</span>
+            Prompt Manager
           </div>
           <div class="sap-pm-context-badge" id="sap-pm-badge" style="display:none"></div>
           <button class="sap-pm-close-btn" id="sap-pm-close" title="Close (Esc)">

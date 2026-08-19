@@ -606,3 +606,133 @@ kbd { background: #EDEFF0; border: 1px solid #BCC3CA; border-radius: 4px; paddin
 
 #confirm-msg { font-size: 14px; color: #1D2D3E; margin-bottom: 20px; font-weight: 600; }
 .confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── Admin panels (Settings view) ──────────────────────────────────────── */
+
+.admin-card { margin-top: 20px; }
+
+.admin-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-card-header h2 { margin-bottom: 4px; }
+.admin-card-header p  { margin-bottom: 0; }
+
+.admin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-empty {
+  font-size: 13px;
+  color: #8696A7;
+  padding: 12px 0;
+}
+
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: background 0.1s;
+}
+
+.admin-row:hover { background: #F5F6F7; border-color: #EDEFF0; }
+.admin-row.dragging { opacity: 0.4; }
+.admin-row.drag-over { border-color: #0070F2; background: #EBF3FB; }
+
+.admin-drag-handle {
+  cursor: grab;
+  color: #BCC3CA;
+  font-size: 16px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.admin-drag-handle:active { cursor: grabbing; }
+
+.admin-item-input {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1D2D3E;
+  background: transparent;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.admin-item-input:focus {
+  border-color: #0070F2;
+  background: #fff;
+}
+
+.admin-in-use {
+  font-size: 10px;
+  font-weight: 600;
+  color: #8696A7;
+  background: #F5F6F7;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.admin-in-use.has-uses {
+  background: #EBF3FB;
+  color: #0070F2;
+}
+
+.admin-save-btn {
+  background: #0070F2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.admin-save-btn:hover { background: #0064D9; }
+
+.admin-del-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #BCC3CA;
+  flex-shrink: 0;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.admin-del-btn:hover { color: #BB0000; border-color: #BB0000; background: #FFF4F4; }
+.admin-del-btn.has-uses { color: #E8A000; }
+.admin-del-btn.has-uses:hover { color: #BB0000; border-color: #BB0000; background: #FFF4F4; }
+
+.admin-add-row { background: #F5F6F7; border: 1px dashed #0070F2 !important; }
+
+.admin-confirm-add, .admin-cancel-add {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+}

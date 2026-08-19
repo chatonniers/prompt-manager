@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SAP Demo Prompt Manager</title>
+  <title>Prompt Manager</title>
   <script type="module" src="../assets/ui5-bundle.js"></script>
   <link rel="stylesheet" href="manager.css">
 </head>
@@ -13,8 +13,7 @@
     <header id="top-bar">
       <div id="top-bar-left">
         <div id="app-title">
-          <span class="title-main">SAP Demo Prompt Manager</span>
-          <span class="title-sub">by Sylvain Chatonnier</span>
+          <span class="title-main">Prompt Manager</span>
         </div>
       </div>
       <div id="top-bar-right">
@@ -111,6 +110,42 @@
               <p class="setting-hint">Use <kbd>Ctrl+Shift+Space</kbd> to toggle the overlay on any page. Change in <a href="edge://extensions/shortcuts" target="_blank">Edge extension shortcuts</a>.</p>
             </div>
             <button class="action-btn primary" id="do-save-settings">Save Settings</button>
+          </div>
+
+          <!-- Admin: Solutions -->
+          <div class="view-card admin-card" id="admin-solutions-card">
+            <div class="admin-card-header">
+              <div>
+                <h2>Solutions</h2>
+                <p>Manage the list of SAP solutions available when creating or filtering prompts.</p>
+              </div>
+              <button class="action-btn primary" id="btn-add-solution">+ Add Solution</button>
+            </div>
+            <div class="admin-list" id="admin-solutions-list"></div>
+          </div>
+
+          <!-- Admin: Story Flows -->
+          <div class="view-card admin-card" id="admin-flows-card">
+            <div class="admin-card-header">
+              <div>
+                <h2>Story Flows</h2>
+                <p>Manage the end-to-end demo story flows used to organise and filter prompts.</p>
+              </div>
+              <button class="action-btn primary" id="btn-add-flow">+ Add Story Flow</button>
+            </div>
+            <div class="admin-list" id="admin-flows-list"></div>
+          </div>
+
+          <!-- Admin: Landscapes -->
+          <div class="view-card admin-card" id="admin-landscapes-card">
+            <div class="admin-card-header">
+              <div>
+                <h2>Landscapes</h2>
+                <p>Manage the shared landscape catalogue (tenant URLs, system names) available when tagging prompts.</p>
+              </div>
+              <button class="action-btn primary" id="btn-add-landscape-admin">+ Add Landscape</button>
+            </div>
+            <div class="admin-list" id="admin-landscapes-list"></div>
           </div>
         </div>
       </main>
