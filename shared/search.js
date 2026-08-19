@@ -29,18 +29,32 @@ function filterAndRank(prompts, query, context, showAll) {
     );
   }
 
+  const q = query.trim();
+
   return pool
-    .map(p => ({ prompt: p, score: scorePrompt(p, query) }))
+    .map(p => ({ prompt: p, score: scorePrompt(p, q) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => {
-      if (a.prompt.isFavorite !== b.prompt.isFavorite)
-        return a.prompt.isFavorite ? -1 : 1;
+      const pa = a.prompt, pb = b.prompt;
+
+      // 1. Favorites always on top
+      if (pa.isFavorite !== pb.isFavorite) return pa.isFavorite ? -1 : 1;
+
+      // 2. Solution-relevant prompts before universal (empty solutions) ones
+      const aSol = context && context.detected && pa.solutions && pa.solutions.includes(context.solution) ? 0 : 1;
+      const bSol = context && context.detected && pb.solutions && pb.solutions.includes(context.solution) ? 0 : 1;
+      if (aSol !== bSol) return aSol - bSol;
+
+      // 3. Story-flow match
       if (context && context.suggestedFlows && context.suggestedFlows.length > 0) {
-        const aFlow = context.suggestedFlows.includes(a.prompt.storyFlow) ? 0 : 1;
-        const bFlow = context.suggestedFlows.includes(b.prompt.storyFlow) ? 0 : 1;
+        const aFlow = context.suggestedFlows.includes(pa.storyFlow) ? 0 : 1;
+        const bFlow = context.suggestedFlows.includes(pb.storyFlow) ? 0 : 1;
         if (aFlow !== bFlow) return aFlow - bFlow;
       }
-      return b.score - a.score;
+
+      // 4. Within each group: A-Z by title when no search query, score desc when searching
+      if (q) return b.score - a.score;
+      return (pa.title || "").localeCompare(pb.title || "");
     })
     .map(({ prompt }) => prompt);
 }
