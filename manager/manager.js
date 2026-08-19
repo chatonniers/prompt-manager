@@ -195,6 +195,42 @@ let currentFilter = { storyFlow: null, solution: null };
 let pendingDeleteId = null;
 let currentLang = "en";
 
+// ── Sidebar resize ─────────────────────────────────────────────────────────
+function initSidebarResize() {
+  const sidebar  = document.getElementById("sidebar");
+  const resizer  = document.getElementById("sidebar-resizer");
+  const STORAGE_KEY = "pm-sidebar-width";
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) sidebar.style.width = saved + "px";
+
+  let dragging = false;
+
+  resizer.addEventListener("mousedown", (e) => {
+    dragging = true;
+    resizer.classList.add("resizing");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!dragging) return;
+    const layout = document.getElementById("main-layout").getBoundingClientRect();
+    const newWidth = Math.min(400, Math.max(140, e.clientX - layout.left));
+    sidebar.style.width = newWidth + "px";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove("resizing");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    localStorage.setItem(STORAGE_KEY, parseInt(sidebar.style.width));
+  });
+}
+
 // ── Startup ────────────────────────────────────────────────────────────────
 async function init() {
   const [prompts, catalog, settings] = await Promise.all([
@@ -216,6 +252,7 @@ async function init() {
   loadSettings();
   renderAdminPanels();
   bindEvents();
+  initSidebarResize();
 }
 
 // ── Language application ───────────────────────────────────────────────────
