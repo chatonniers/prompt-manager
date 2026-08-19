@@ -346,7 +346,25 @@ function renderGrid() {
     grid.innerHTML = `<div class="empty-state"><h3>${t("noPrompts")}</h3><p>${t("noPromptsHint")}</p></div>`;
     return;
   }
-  grid.innerHTML = pool.map(cardHTML).join("");
+
+  const showSections = currentView === "all" && !document.getElementById("list-search").value.trim();
+  if (showSections) {
+    const favs = pool.filter(p => p.isFavorite);
+    const rest = pool.filter(p => !p.isFavorite);
+    let html = "";
+    if (favs.length) {
+      html += `<div class="grid-section-label">⭐ ${t("favorites")}</div>`;
+      html += favs.map(cardHTML).join("");
+    }
+    if (rest.length) {
+      html += `<div class="grid-section-label">${favs.length ? "All Prompts" : t("allPrompts")}</div>`;
+      html += rest.map(cardHTML).join("");
+    }
+    grid.innerHTML = html;
+  } else {
+    grid.innerHTML = pool.map(cardHTML).join("");
+  }
+
   grid.querySelectorAll(".prompt-card").forEach(card => {
     const id = card.dataset.id;
     card.querySelector(".prompt-card-fav").addEventListener("click", e => { e.stopPropagation(); toggleFav(id); });
