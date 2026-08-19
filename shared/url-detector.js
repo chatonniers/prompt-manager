@@ -22,12 +22,17 @@ const SAP_URL_RULES = [
   },
   {
     solution: "S/4HANA",
-    patterns: [/s4hana\.cloud\.sap/i, /my\d+\.s4hana\.cloud\.sap/i, /\/sap\/s4\/hana/i],
+    patterns: [/s4hana\.cloud\.sap/i, /my\d+\.s4hana\.cloud\.sap/i, /\/sap\/s4\/hana/i, /\.s4hana\./i],
     suggestedFlows: ["Procure-to-Pay", "Order-to-Cash", "Record-to-Report", "Hire-to-Retire"]
   },
   {
     solution: "BTP",
-    patterns: [/cockpit\.btp\.cloud\.sap/i, /cfapps\.[a-z0-9-]+\.hana\.ondemand\.com/i, /\.btp\.cloud\.sap/i],
+    patterns: [/cockpit\.btp\.cloud\.sap/i, /cfapps\.[a-z0-9-]+\.hana\.ondemand\.com/i, /\.btp\.cloud\.sap/i, /build\.cloud\.sap/i],
+    suggestedFlows: ["Design-to-Operate"]
+  },
+  {
+    solution: "Digital Manufacturing",
+    patterns: [/dmc\.cloud\.sap/i, /digital-manufacturing/i, /manufacturing\.cloud\.sap/i],
     suggestedFlows: ["Design-to-Operate"]
   },
   {
