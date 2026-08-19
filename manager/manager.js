@@ -2,7 +2,188 @@
 
 // StorageAPI is loaded via <script src="../shared/storage.js"> before this file
 
-// These are populated from storage on init — no longer hardcoded constants
+// ── i18n strings ─────────────────────────────────────────────────────────────
+const I18N = {
+  en: {
+    allPrompts:   "All Prompts",
+    favorites:    "Favorites",
+    mostUsed:     "Most Used",
+    byStoryFlow:  "BY STORY FLOW",
+    bySolution:   "BY SOLUTION",
+    importExport: "Import / Export",
+    settings:     "Settings",
+    newPrompt:    "+ New Prompt",
+    import:       "↑ Import",
+    export:       "↓ Export",
+    searchPlaceholder: "Search all prompts…",
+    sortLabel:    "Sort:",
+    sortUpdated:  "Last Updated",
+    sortTitle:    "Title A–Z",
+    sortUsage:    "Most Used",
+    sortCreated:  "Date Created",
+    title:        "Title",
+    promptBody:   "Prompt Body (EN)",
+    promptBodyFr: "Prompt Body (FR)",
+    bodyPlaceholder:   "The full prompt text that will be copied to clipboard…",
+    bodyPlaceholderFr: "Le texte complet du prompt qui sera copié dans le presse-papier…",
+    storyFlow:    "Story Flow",
+    favorite:     "Favorite",
+    markFav:      "Mark as Favorite ★",
+    solutions:    "Solutions",
+    tags:         "Tags",
+    tagsHint:     "(press Enter to add)",
+    landscapes:   "Landscapes",
+    landscapesHint: "(tenant URLs / system names)",
+    notes:        "Notes",
+    notesHint:    "(internal, not copied)",
+    notesPlaceholder: "Demo tips, context notes…",
+    cancel:       "Cancel",
+    save:         "Save Prompt",
+    copy:         "Copy",
+    edit:         "Edit",
+    del:          "Delete",
+    openMgr:      "Open Prompt Manager",
+    copied:       "Copied to clipboard ✓",
+    promptUpdated:"Prompt updated ✓",
+    promptCreated:"Prompt created ✓",
+    promptDeleted:"Prompt deleted",
+    settingsSaved:"Settings saved ✓",
+    exportBtn:    "↓ Download prompts.json",
+    importBtn:    "Choose JSON file…",
+    importMerge:  "Merge (keep existing)",
+    importReplace:"Replace all",
+    exportTitle:  "Export Prompts",
+    exportDesc:   "Download all your prompts as a JSON file to share with colleagues or back up your library.",
+    importTitle:  "Import Prompts",
+    importDesc:   "Import a previously exported JSON file. Choose merge (keep existing) or replace (overwrite all).",
+    settingsTitle:"Extension Settings",
+    autoFilter:   "Auto-filter prompts by detected SAP tool",
+    autoFilterHint:"When enabled, the overlay shows only prompts matching the current SAP solution.",
+    shortcutLabel:"Keyboard shortcut",
+    shortcutHint: "Use Ctrl+Shift+Space to toggle the overlay on any page. Change in Edge extension shortcuts.",
+    saveSettings: "Save Settings",
+    solutionsAdmin:"Solutions",
+    solutionsDesc: "Manage the list of SAP solutions available when creating or filtering prompts.",
+    flowsAdmin:   "Story Flows",
+    flowsDesc:    "Manage the end-to-end demo story flows used to organise and filter prompts.",
+    landscapesAdmin:"Landscapes",
+    landscapesDesc: "Manage the shared landscape catalogue (tenant URLs, system names) available when tagging prompts.",
+    addSolution:  "+ Add Solution",
+    addFlow:      "+ Add Story Flow",
+    addLandscape: "+ Add Landscape",
+    add:          "Add",
+    unused:       "unused",
+    noItems:      "No items yet. Click \"+ Add\" to create one.",
+    noPrompts:    "No prompts found",
+    noPromptsHint:"Try a different search or create a new prompt with the \"+ New Prompt\" button.",
+    selectFlow:   "— Select —",
+    renamed:      (v) => `Renamed to "${v}"`,
+    added:        (v) => `"${v}" added`,
+    deleted:      (v) => `"${v}" deleted`,
+    deleteConfirm:(v,n) => `"${v}" is used by ${n} prompt${n!==1?'s':''}.\nDeleting it will remove it from those prompts. Continue?`,
+    alreadyExists:"Already exists",
+    nameExists:   "Name already exists",
+    usedBy:       (n) => `Used by ${n} prompt${n!==1?'s':''}`,
+    promptsCount: (n) => `${n} prompt${n!==1?'s':''}`,
+    importOk:     (n,s) => `✓ Imported ${n} prompts${s ? `, skipped ${s} duplicates` : ""}.`,
+    langSwitch:   "FR",
+    bodyTabEn:    "EN",
+    bodyTabFr:    "FR",
+  },
+  fr: {
+    allPrompts:   "Tous les prompts",
+    favorites:    "Favoris",
+    mostUsed:     "Les plus utilisés",
+    byStoryFlow:  "PAR PROCESSUS",
+    bySolution:   "PAR SOLUTION",
+    importExport: "Import / Export",
+    settings:     "Paramètres",
+    newPrompt:    "+ Nouveau prompt",
+    import:       "↑ Importer",
+    export:       "↓ Exporter",
+    searchPlaceholder: "Rechercher des prompts…",
+    sortLabel:    "Tri :",
+    sortUpdated:  "Dernière mise à jour",
+    sortTitle:    "Titre A–Z",
+    sortUsage:    "Plus utilisés",
+    sortCreated:  "Date de création",
+    title:        "Titre",
+    promptBody:   "Corps du prompt (EN)",
+    promptBodyFr: "Corps du prompt (FR)",
+    bodyPlaceholder:   "The full prompt text that will be copied to clipboard…",
+    bodyPlaceholderFr: "Le texte complet du prompt qui sera copié dans le presse-papier…",
+    storyFlow:    "Processus métier",
+    favorite:     "Favori",
+    markFav:      "Marquer comme favori ★",
+    solutions:    "Solutions",
+    tags:         "Tags",
+    tagsHint:     "(Entrée pour ajouter)",
+    landscapes:   "Paysages",
+    landscapesHint: "(URL de tenant / noms de système)",
+    notes:        "Notes",
+    notesHint:    "(interne, non copié)",
+    notesPlaceholder: "Conseils démo, notes de contexte…",
+    cancel:       "Annuler",
+    save:         "Enregistrer",
+    copy:         "Copier",
+    edit:         "Modifier",
+    del:          "Supprimer",
+    openMgr:      "Ouvrir le gestionnaire",
+    copied:       "Copié dans le presse-papier ✓",
+    promptUpdated:"Prompt mis à jour ✓",
+    promptCreated:"Prompt créé ✓",
+    promptDeleted:"Prompt supprimé",
+    settingsSaved:"Paramètres enregistrés ✓",
+    exportBtn:    "↓ Télécharger prompts.json",
+    importBtn:    "Choisir un fichier JSON…",
+    importMerge:  "Fusionner (conserver l'existant)",
+    importReplace:"Tout remplacer",
+    exportTitle:  "Exporter les prompts",
+    exportDesc:   "Téléchargez tous vos prompts en JSON pour les partager ou les sauvegarder.",
+    importTitle:  "Importer des prompts",
+    importDesc:   "Importez un fichier JSON exporté précédemment. Choisissez fusionner ou remplacer.",
+    settingsTitle:"Paramètres de l'extension",
+    autoFilter:   "Filtrer les prompts par outil SAP détecté",
+    autoFilterHint:"Si activé, l'overlay affiche uniquement les prompts correspondant à la solution SAP active.",
+    shortcutLabel:"Raccourci clavier",
+    shortcutHint: "Utilisez Ctrl+Maj+Espace pour afficher l'overlay. À modifier dans les raccourcis des extensions Edge.",
+    saveSettings: "Enregistrer les paramètres",
+    solutionsAdmin:"Solutions",
+    solutionsDesc: "Gérez la liste des solutions SAP disponibles à la création et au filtrage des prompts.",
+    flowsAdmin:   "Processus métier",
+    flowsDesc:    "Gérez les processus de démonstration de bout en bout pour organiser et filtrer les prompts.",
+    landscapesAdmin:"Paysages",
+    landscapesDesc: "Gérez le catalogue partagé de paysages (URL de tenant, noms de système).",
+    addSolution:  "+ Ajouter une solution",
+    addFlow:      "+ Ajouter un processus",
+    addLandscape: "+ Ajouter un paysage",
+    add:          "Ajouter",
+    unused:       "non utilisé",
+    noItems:      "Aucun élément. Cliquez sur \"+ Ajouter\" pour en créer un.",
+    noPrompts:    "Aucun prompt trouvé",
+    noPromptsHint:"Essayez une autre recherche ou créez un prompt avec le bouton \"+ Nouveau prompt\".",
+    selectFlow:   "— Sélectionner —",
+    renamed:      (v) => `Renommé en "${v}"`,
+    added:        (v) => `"${v}" ajouté`,
+    deleted:      (v) => `"${v}" supprimé`,
+    deleteConfirm:(v,n) => `"${v}" est utilisé par ${n} prompt${n!==1?'s':''}.\nLe supprimer l'effacera de ces prompts. Continuer ?`,
+    alreadyExists:"Existe déjà",
+    nameExists:   "Ce nom existe déjà",
+    usedBy:       (n) => `Utilisé par ${n} prompt${n!==1?'s':''}`,
+    promptsCount: (n) => `${n} prompt${n!==1?'s':''}`,
+    importOk:     (n,s) => `✓ ${n} prompts importés${s ? `, ${s} doublons ignorés` : ""}.`,
+    langSwitch:   "EN",
+    bodyTabEn:    "EN",
+    bodyTabFr:    "FR",
+  }
+};
+
+function t(key, ...args) {
+  const val = I18N[currentLang]?.[key] ?? I18N.en[key];
+  return typeof val === "function" ? val(...args) : (val ?? key);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
 let STORY_FLOWS = [];
 let SOLUTIONS   = [];
 let LANDSCAPES  = [];
@@ -12,18 +193,22 @@ let editingId  = null;
 let currentView = "all";
 let currentFilter = { storyFlow: null, solution: null };
 let pendingDeleteId = null;
+let currentLang = "en";
 
 // ── Startup ────────────────────────────────────────────────────────────────
 async function init() {
-  const [prompts, catalog] = await Promise.all([
+  const [prompts, catalog, settings] = await Promise.all([
     StorageAPI.getAllPrompts(),
-    StorageAPI.getCatalog()
+    StorageAPI.getCatalog(),
+    StorageAPI.getSettings()
   ]);
-  allPrompts = prompts;
+  allPrompts  = prompts;
   STORY_FLOWS = catalog.storyFlows;
   SOLUTIONS   = catalog.solutions;
   LANDSCAPES  = catalog.landscapes;
+  currentLang = settings.lang || "en";
 
+  applyLang();
   buildSidebarFlows();
   buildSidebarSolutions();
   renderGrid();
@@ -31,6 +216,60 @@ async function init() {
   loadSettings();
   renderAdminPanels();
   bindEvents();
+}
+
+// ── Language application ───────────────────────────────────────────────────
+function applyLang() {
+  // Top bar
+  document.getElementById("btn-new-prompt").textContent = t("newPrompt");
+  document.getElementById("btn-import").textContent     = t("import");
+  document.getElementById("btn-export").textContent     = t("export");
+  document.getElementById("lang-toggle").textContent    = t("langSwitch");
+
+  // Sidebar static labels
+  document.getElementById("nav-label-library").textContent    = "LIBRARY";
+  document.getElementById("nav-all-text").textContent         = t("allPrompts");
+  document.getElementById("nav-favs-text").textContent        = t("favorites");
+  document.getElementById("nav-most-used-text").textContent   = t("mostUsed");
+  document.getElementById("nav-label-flows").textContent      = t("byStoryFlow");
+  document.getElementById("nav-label-solutions").textContent  = t("bySolution");
+  document.getElementById("nav-import-export-text").textContent = t("importExport");
+  document.getElementById("nav-settings-text").textContent    = t("settings");
+
+  // Search & sort
+  document.getElementById("list-search").placeholder = t("searchPlaceholder");
+  document.querySelector("#sort-controls label").childNodes[0].textContent = t("sortLabel") + " ";
+  const sortSel = document.getElementById("sort-select");
+  sortSel.options[0].text = t("sortUpdated");
+  sortSel.options[1].text = t("sortTitle");
+  sortSel.options[2].text = t("sortUsage");
+  sortSel.options[3].text = t("sortCreated");
+
+  // Import/Export view
+  document.getElementById("ie-export-title").textContent = t("exportTitle");
+  document.getElementById("ie-export-desc").textContent  = t("exportDesc");
+  document.getElementById("do-export").textContent       = t("exportBtn");
+  document.getElementById("ie-import-title").textContent = t("importTitle");
+  document.getElementById("ie-import-desc").textContent  = t("importDesc");
+  document.getElementById("do-import-btn").textContent   = t("importBtn");
+  document.getElementById("import-merge-label").textContent  = " " + t("importMerge");
+  document.getElementById("import-replace-label").textContent = " " + t("importReplace");
+
+  // Settings view
+  document.getElementById("settings-title").textContent      = t("settingsTitle");
+  document.getElementById("setting-auto-filter-label").textContent = t("autoFilter");
+  document.getElementById("setting-auto-filter-hint").textContent  = t("autoFilterHint");
+  document.getElementById("setting-shortcut-label").textContent    = t("shortcutLabel");
+  document.getElementById("do-save-settings").textContent          = t("saveSettings");
+  document.getElementById("admin-sol-title").textContent    = t("solutionsAdmin");
+  document.getElementById("admin-sol-desc").textContent     = t("solutionsDesc");
+  document.getElementById("btn-add-solution").textContent   = t("addSolution");
+  document.getElementById("admin-flow-title").textContent   = t("flowsAdmin");
+  document.getElementById("admin-flow-desc").textContent    = t("flowsDesc");
+  document.getElementById("btn-add-flow").textContent       = t("addFlow");
+  document.getElementById("admin-ls-title").textContent     = t("landscapesAdmin");
+  document.getElementById("admin-ls-desc").textContent      = t("landscapesDesc");
+  document.getElementById("btn-add-landscape-admin").textContent = t("addLandscape");
 }
 
 // ── Sidebar dynamic items ──────────────────────────────────────────────────
@@ -78,20 +317,22 @@ function getFilteredSorted() {
   let pool = allPrompts;
 
   if (currentView === "favorites")  pool = pool.filter(p => p.isFavorite);
+  if (currentView === "most-used")  pool = pool.filter(p => (p.usageCount || 0) > 0);
   if (currentView === "flow")       pool = pool.filter(p => p.storyFlow === currentFilter.storyFlow);
   if (currentView === "solution")   pool = pool.filter(p => (p.solutions||[]).includes(currentFilter.solution));
 
   if (q) {
     pool = pool.filter(p =>
-      [p.title, p.body, p.notes, p.storyFlow, ...(p.solutions||[]), ...(p.tags||[]), ...(p.landscapes||[])]
+      [p.title, p.body, p.body_fr, p.notes, p.storyFlow, ...(p.solutions||[]), ...(p.tags||[]), ...(p.landscapes||[])]
         .some(v => (v||"").toLowerCase().includes(q))
     );
   }
 
+  const effectiveSort = currentView === "most-used" ? "usage" : sort;
   pool = [...pool].sort((a, b) => {
-    if (sort === "title")   return (a.title||"").localeCompare(b.title||"");
-    if (sort === "usage")   return (b.usageCount||0) - (a.usageCount||0);
-    if (sort === "created") return new Date(b.createdAt) - new Date(a.createdAt);
+    if (effectiveSort === "title")   return (a.title||"").localeCompare(b.title||"");
+    if (effectiveSort === "usage")   return (b.usageCount||0) - (a.usageCount||0);
+    if (effectiveSort === "created") return new Date(b.createdAt) - new Date(a.createdAt);
     return new Date(b.updatedAt) - new Date(a.updatedAt);
   });
 
@@ -102,7 +343,7 @@ function renderGrid() {
   const grid = document.getElementById("prompt-grid");
   const pool = getFilteredSorted();
   if (!pool.length) {
-    grid.innerHTML = `<div class="empty-state"><h3>No prompts found</h3><p>Try a different search or create a new prompt with the "+ New Prompt" button.</p></div>`;
+    grid.innerHTML = `<div class="empty-state"><h3>${t("noPrompts")}</h3><p>${t("noPromptsHint")}</p></div>`;
     return;
   }
   grid.innerHTML = pool.map(cardHTML).join("");
@@ -121,19 +362,22 @@ function cardHTML(p) {
   const tags = (p.tags||[]).slice(0,3).map(t => `<span class="pill tag">#${esc(t)}</span>`).join("");
   const favClass = p.isFavorite ? "active" : "";
   const usage = p.usageCount ? `<div class="usage-hint">Used ${p.usageCount}× ${p.lastUsedAt ? "· " + relTime(p.lastUsedAt) : ""}</div>` : "";
+  const body = (currentLang === "fr" && p.body_fr) ? p.body_fr : p.body;
+  const hasTranslation = p.body_fr ? "" : `<span class="pill lang-missing" title="No French translation yet">EN only</span>`;
+  const langBadge = currentLang === "fr" ? (p.body_fr ? `<span class="pill lang-badge fr">FR</span>` : `<span class="pill lang-missing">EN only</span>`) : "";
   return `
     <div class="prompt-card" data-id="${esc(p.id)}">
       <div class="prompt-card-header">
         <div class="prompt-card-title">${esc(p.title)}</div>
         <button class="prompt-card-fav ${favClass}" title="Toggle favorite">★</button>
       </div>
-      <div class="prompt-card-body-preview">${esc(p.body)}</div>
-      <div class="prompt-card-meta">${sols}${flow}${tags}</div>
+      <div class="prompt-card-body-preview">${esc(body)}</div>
+      <div class="prompt-card-meta">${sols}${flow}${tags}${langBadge}</div>
       ${usage}
       <div class="prompt-card-actions">
-        <button class="card-action-btn copy">Copy</button>
-        <button class="card-action-btn edit">Edit</button>
-        <button class="card-action-btn del">Delete</button>
+        <button class="card-action-btn copy">${t("copy")}</button>
+        <button class="card-action-btn edit">${t("edit")}</button>
+        <button class="card-action-btn del">${t("del")}</button>
       </div>
     </div>`;
 }
@@ -152,11 +396,12 @@ function relTime(iso) {
 function copyPrompt(id) {
   const p = allPrompts.find(x => x.id === id);
   if (!p) return;
-  navigator.clipboard.writeText(p.body).then(async () => {
+  const body = (currentLang === "fr" && p.body_fr) ? p.body_fr : p.body;
+  navigator.clipboard.writeText(body).then(async () => {
     await StorageAPI.incrementUsage(id);
     allPrompts = await StorageAPI.getAllPrompts();
     renderGrid();
-    showToast("Copied to clipboard ✓");
+    showToast(t("copied"));
   });
 }
 
@@ -178,15 +423,26 @@ let currentLandscapes = [];
 function openEdit(id) {
   const p = id ? allPrompts.find(x => x.id === id) : null;
   editingId = id || null;
-  document.getElementById("modal-title").textContent = p ? "Edit Prompt" : "New Prompt";
-  document.getElementById("f-title").value = p?.title || "";
-  document.getElementById("f-body").value = p?.body || "";
+  document.getElementById("modal-title").textContent = p ? t("edit") + " Prompt" : t("newPrompt").replace("+ ","");
+
+  document.getElementById("f-title").value    = p?.title || "";
+  document.getElementById("f-body-en").value  = p?.body || "";
+  document.getElementById("f-body-fr").value  = p?.body_fr || "";
   document.getElementById("f-favorite").checked = p?.isFavorite || false;
-  document.getElementById("f-notes").value = p?.notes || "";
+  document.getElementById("f-notes").value    = p?.notes || "";
+
+  // Show EN tab by default
+  switchBodyTab("en");
+
+  // Update modal labels
+  document.getElementById("modal-cancel").textContent = t("cancel");
+  document.getElementById("modal-save").textContent   = t("save");
+  document.getElementById("f-body-tab-en").textContent = t("bodyTabEn");
+  document.getElementById("f-body-tab-fr").textContent = t("bodyTabFr");
 
   // Rebuild Story Flow dropdown from catalog
   const sfSelect = document.getElementById("f-story-flow");
-  sfSelect.innerHTML = `<option value="">— Select —</option>` +
+  sfSelect.innerHTML = `<option value="">${t("selectFlow")}</option>` +
     STORY_FLOWS.map(f => `<option${p?.storyFlow === f ? " selected" : ""}>${esc(f)}</option>`).join("");
 
   // Rebuild Solutions checkboxes from catalog
@@ -201,7 +457,7 @@ function openEdit(id) {
   currentTags = [...(p?.tags || [])];
   renderTagChips();
 
-  // Landscapes — populate from catalog + prompt's own values merged
+  // Landscapes
   const allLandscapes = [...new Set([...LANDSCAPES, ...(p?.landscapes||[])])];
   currentLandscapes = [...(p?.landscapes || [])];
   renderLandscapeRows(allLandscapes);
@@ -211,9 +467,18 @@ function openEdit(id) {
   document.getElementById("f-title").focus();
 }
 
+function switchBodyTab(lang) {
+  document.getElementById("f-body-en").style.display = lang === "en" ? "" : "none";
+  document.getElementById("f-body-fr").style.display = lang === "fr" ? "" : "none";
+  document.getElementById("f-body-tab-en").classList.toggle("active-tab", lang === "en");
+  document.getElementById("f-body-tab-fr").classList.toggle("active-tab", lang === "fr");
+}
+
 function updateBodyCount() {
-  const v = document.getElementById("f-body").value;
-  document.getElementById("f-body-count").textContent = `${v.length} chars`;
+  const en = document.getElementById("f-body-en")?.value || "";
+  const fr = document.getElementById("f-body-fr")?.value || "";
+  const active = document.getElementById("f-body-fr")?.style.display === "none" ? en : fr;
+  document.getElementById("f-body-count").textContent = `${active.length} chars`;
 }
 
 function renderTagChips() {
@@ -262,12 +527,13 @@ function closeModal() {
 }
 
 async function savePrompt() {
-  const title = document.getElementById("f-title").value.trim();
-  const body  = document.getElementById("f-body").value.trim();
-  if (!title || !body) { alert("Title and Prompt Body are required."); return; }
+  const title  = document.getElementById("f-title").value.trim();
+  const body   = document.getElementById("f-body-en").value.trim();
+  const bodyFr = document.getElementById("f-body-fr").value.trim();
+  if (!title || !body) { alert(currentLang === "fr" ? "Le titre et le corps (EN) sont obligatoires." : "Title and Prompt Body (EN) are required."); return; }
 
   const solutions = Array.from(document.querySelectorAll("#f-solutions input:checked")).map(cb => cb.value);
-  const storyFlow = document.getElementById("f-story-flow").value;
+  const storyFlow  = document.getElementById("f-story-flow").value;
   const isFavorite = document.getElementById("f-favorite").checked;
   const notes = document.getElementById("f-notes").value.trim();
   const landscapes = currentLandscapes.filter(l => l.trim());
@@ -277,7 +543,7 @@ async function savePrompt() {
 
   const prompt = {
     id:         editingId || crypto.randomUUID(),
-    title, body, notes, storyFlow, solutions, landscapes,
+    title, body, body_fr: bodyFr || null, notes, storyFlow, solutions, landscapes,
     tags:       currentTags,
     isFavorite,
     usageCount: existing?.usageCount || 0,
@@ -293,7 +559,7 @@ async function savePrompt() {
   updateNavBadges();
   renderGrid();
   closeModal();
-  showToast(editingId ? "Prompt updated ✓" : "Prompt created ✓");
+  showToast(editingId ? t("promptUpdated") : t("promptCreated"));
 }
 
 // ── Delete ──────────────────────────────────────────────────────────────────
@@ -335,7 +601,7 @@ function inUseCount(type, value) {
 function renderAdminList(containerId, items, type) {
   const el = document.getElementById(containerId);
   if (!items.length) {
-    el.innerHTML = `<div class="admin-empty">No items yet. Click "+ Add" to create one.</div>`;
+    el.innerHTML = `<div class="admin-empty">${t("noItems")}</div>`;
     return;
   }
   el.innerHTML = items.map((item, idx) => {
@@ -345,10 +611,10 @@ function renderAdminList(containerId, items, type) {
         <span class="admin-drag-handle" title="Drag to reorder">⠿</span>
         <input class="admin-item-input" type="text" value="${esc(item)}" data-original="${esc(item)}"/>
         <span class="admin-in-use ${count ? 'has-uses' : ''}" title="${count} prompt${count !== 1 ? 's' : ''} use this">
-          ${count ? `${count} prompt${count !== 1 ? 's' : ''}` : 'unused'}
+          ${count ? t("promptsCount", count) : t("unused")}
         </span>
         <button class="admin-save-btn" title="Save rename" style="display:none">✓</button>
-        <button class="admin-del-btn ${count ? 'has-uses' : ''}" title="${count ? `Used by ${count} prompt${count !== 1 ? 's' : ''} — will be removed from them` : 'Delete'}">✕</button>
+        <button class="admin-del-btn ${count ? 'has-uses' : ''}" title="${count ? t("usedBy", count) : t("del")}">✕</button>
       </div>`;
   }).join("");
 
@@ -395,12 +661,12 @@ async function addItem(type, value) {
   const list = getList(type);
   const v = value.trim();
   if (!v) return;
-  if (list.includes(v)) { showToast("Already exists"); return; }
+  if (list.includes(v)) { showToast(t("alreadyExists")); return; }
   list.push(v);
   await persistCatalog();
   renderAdminPanels();
   refreshAfterCatalogChange();
-  showToast(`"${v}" added`);
+  showToast(t("added", v));
 }
 
 async function renameItem(type, idx, newVal) {
@@ -408,7 +674,7 @@ async function renameItem(type, idx, newVal) {
   const oldVal = list[idx];
   if (!newVal) return;
   if (newVal === oldVal) return;
-  if (list.includes(newVal)) { showToast("Name already exists"); return; }
+  if (list.includes(newVal)) { showToast(t("nameExists")); return; }
 
   list[idx] = newVal;
   await persistCatalog();
@@ -432,7 +698,7 @@ async function renameItem(type, idx, newVal) {
 
   renderAdminPanels();
   refreshAfterCatalogChange();
-  showToast(`Renamed to "${newVal}"`);
+  showToast(t("renamed", newVal));
 }
 
 async function deleteItem(type, idx) {
@@ -441,7 +707,7 @@ async function deleteItem(type, idx) {
   const count = inUseCount(type, val);
 
   if (count > 0) {
-    const ok = confirm(`"${val}" is used by ${count} prompt${count !== 1 ? 's' : ''}.\nDeleting it will remove it from those prompts. Continue?`);
+    const ok = confirm(t("deleteConfirm", val, count));
     if (!ok) return;
     // Remove from all prompts
     const prompts = await StorageAPI.getAllPrompts();
@@ -458,7 +724,7 @@ async function deleteItem(type, idx) {
   await persistCatalog();
   renderAdminPanels();
   refreshAfterCatalogChange();
-  showToast(`"${val}" deleted`);
+  showToast(t("deleted", val));
 }
 
 function bindDragReorder(container, type) {
@@ -514,9 +780,9 @@ function promptAddItem(type, containerId) {
   row.className = "admin-row admin-add-row";
   row.innerHTML = `
     <span class="admin-drag-handle" style="visibility:hidden">⠿</span>
-    <input class="admin-item-input" type="text" placeholder="Enter name…" style="border-color:#0070F2"/>
-    <button class="action-btn primary admin-confirm-add">Add</button>
-    <button class="action-btn admin-cancel-add">Cancel</button>`;
+    <input class="admin-item-input" type="text" placeholder="${t("add")}…" style="border-color:#0070F2"/>
+    <button class="action-btn primary admin-confirm-add">${t("add")}</button>
+    <button class="action-btn admin-cancel-add">${t("cancel")}</button>`;
   container.appendChild(row);
 
   const input = row.querySelector(".admin-item-input");
@@ -549,8 +815,10 @@ function setActiveNav(btn) {
 }
 
 function updateNavBadges() {
-  document.getElementById("nav-count-all").textContent  = allPrompts.length;
-  document.getElementById("nav-count-favs").textContent = allPrompts.filter(p => p.isFavorite).length;
+  document.getElementById("nav-count-all").textContent       = allPrompts.length;
+  document.getElementById("nav-count-favs").textContent      = allPrompts.filter(p => p.isFavorite).length;
+  const usedCount = allPrompts.filter(p => (p.usageCount || 0) > 0).length;
+  document.getElementById("nav-count-most-used").textContent = usedCount;
 }
 
 // ── Settings ────────────────────────────────────────────────────────────────
@@ -561,8 +829,8 @@ async function loadSettings() {
 
 async function saveSettings() {
   const autoFilterEnabled = document.getElementById("setting-auto-filter").checked;
-  await StorageAPI.saveSettings({ autoFilterEnabled });
-  showToast("Settings saved ✓");
+  await StorageAPI.saveSettings({ autoFilterEnabled, lang: currentLang });
+  showToast(t("settingsSaved"));
 }
 
 // ── Import / Export ─────────────────────────────────────────────────────────
@@ -592,7 +860,7 @@ async function handleImportFile(file) {
     buildSidebarSolutions();
     updateNavBadges();
     status.className = "import-status success";
-    status.textContent = `✓ Imported ${result.imported} prompts${result.skipped ? `, skipped ${result.skipped} duplicates` : ""}.`;
+    status.textContent = t("importOk", result.imported, result.skipped);
   } catch (e) {
     status.className = "import-status error";
     status.textContent = "Error: " + e.message;
@@ -652,8 +920,24 @@ function bindEvents() {
     if (e.target === document.getElementById("modal-backdrop")) closeModal();
   });
 
+  // Language toggle
+  document.getElementById("lang-toggle").addEventListener("click", async () => {
+    currentLang = currentLang === "en" ? "fr" : "en";
+    await StorageAPI.saveSettings({ lang: currentLang });
+    applyLang();
+    buildSidebarFlows();
+    buildSidebarSolutions();
+    renderGrid();
+    renderAdminPanels();
+  });
+
   // Body char count
-  document.getElementById("f-body").addEventListener("input", updateBodyCount);
+  document.getElementById("f-body-en").addEventListener("input", updateBodyCount);
+  document.getElementById("f-body-fr").addEventListener("input", updateBodyCount);
+
+  // Body language tabs
+  document.getElementById("f-body-tab-en").addEventListener("click", () => switchBodyTab("en"));
+  document.getElementById("f-body-tab-fr").addEventListener("click", () => switchBodyTab("fr"));
 
   // Tag input
   document.getElementById("f-tag-input").addEventListener("keydown", e => {

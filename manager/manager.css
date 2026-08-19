@@ -736,3 +736,62 @@ kbd { background: #EDEFF0; border: 1px solid #BCC3CA; border-radius: 4px; paddin
   font-family: inherit;
   flex-shrink: 0;
 }
+
+/* ── Language toggle ────────────────────────────────────────────────────── */
+.tb-btn-lang {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.6);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  min-width: 40px;
+}
+
+.tb-btn-lang:hover {
+  background: rgba(255,255,255,0.28);
+  border-color: #fff;
+}
+
+/* ── Body language tabs (prompt modal) ──────────────────────────────────── */
+.body-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.body-tab {
+  background: #F5F6F7;
+  border: 1px solid #BCC3CA;
+  border-radius: 6px 6px 0 0;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  color: #556B82;
+  transition: background 0.12s, color 0.12s;
+}
+
+.body-tab.active-tab {
+  background: #0070F2;
+  color: #fff;
+  border-color: #0070F2;
+}
+
+.body-tab-hint {
+  font-size: 11px;
+  color: #8696A7;
+  margin-left: 6px;
+}
+
+/* ── Language pills on prompt cards ─────────────────────────────────────── */
+.pill.lang-badge.fr {
+  background: #F0F5EF;
+  color: #188918;
+}
+
+.pill.lang-missing {
+  background: #FFF8ED;
+  color: #E76500;
+}

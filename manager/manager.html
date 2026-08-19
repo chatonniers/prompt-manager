@@ -17,6 +17,7 @@
         </div>
       </div>
       <div id="top-bar-right">
+        <button class="tb-btn tb-btn-lang" id="lang-toggle" title="Switch language / Changer de langue">FR</button>
         <button class="tb-btn tb-btn-primary" id="btn-new-prompt">+ New Prompt</button>
         <button class="tb-btn" id="btn-import">↑ Import</button>
         <button class="tb-btn" id="btn-export">↓ Export</button>
@@ -27,28 +28,32 @@
     <div id="main-layout">
       <!-- Sidebar -->
       <nav id="sidebar">
-        <div class="nav-section-label">LIBRARY</div>
+        <div class="nav-section-label" id="nav-label-library">LIBRARY</div>
         <button class="nav-item active" data-view="all">
-          <span class="nav-icon">≡</span> All Prompts
+          <span class="nav-icon">≡</span> <span id="nav-all-text">All Prompts</span>
           <span class="nav-badge" id="nav-count-all"></span>
         </button>
         <button class="nav-item" data-view="favorites">
-          <span class="nav-icon">★</span> Favorites
+          <span class="nav-icon">★</span> <span id="nav-favs-text">Favorites</span>
           <span class="nav-badge" id="nav-count-favs"></span>
         </button>
+        <button class="nav-item" data-view="most-used">
+          <span class="nav-icon">🔥</span> <span id="nav-most-used-text">Most Used</span>
+          <span class="nav-badge" id="nav-count-most-used"></span>
+        </button>
 
-        <div class="nav-section-label">BY STORY FLOW</div>
+        <div class="nav-section-label" id="nav-label-flows">BY STORY FLOW</div>
         <div id="nav-flows"></div>
 
-        <div class="nav-section-label">BY SOLUTION</div>
+        <div class="nav-section-label" id="nav-label-solutions">BY SOLUTION</div>
         <div id="nav-solutions"></div>
 
         <div class="nav-divider"></div>
         <button class="nav-item" data-view="import-export">
-          <span class="nav-icon">⇄</span> Import / Export
+          <span class="nav-icon">⇄</span> <span id="nav-import-export-text">Import / Export</span>
         </button>
         <button class="nav-item" data-view="settings">
-          <span class="nav-icon">⚙</span> Settings
+          <span class="nav-icon">⚙</span> <span id="nav-settings-text">Settings</span>
         </button>
       </nav>
 
@@ -77,18 +82,18 @@
         <!-- Import/Export view -->
         <div id="view-import-export" style="display:none">
           <div class="view-card">
-            <h2>Export Prompts</h2>
-            <p>Download all your prompts as a JSON file to share with colleagues or back up your library.</p>
+            <h2 id="ie-export-title">Export Prompts</h2>
+            <p id="ie-export-desc">Download all your prompts as a JSON file to share with colleagues or back up your library.</p>
             <button class="action-btn primary" id="do-export">↓ Download prompts.json</button>
           </div>
           <div class="view-card">
-            <h2>Import Prompts</h2>
-            <p>Import a previously exported JSON file. Choose merge (keep existing) or replace (overwrite all).</p>
+            <h2 id="ie-import-title">Import Prompts</h2>
+            <p id="ie-import-desc">Import a previously exported JSON file. Choose merge (keep existing) or replace (overwrite all).</p>
             <div class="import-row">
               <button class="action-btn" id="do-import-btn">Choose JSON file…</button>
               <input type="file" id="do-import-input" accept=".json" style="display:none"/>
-              <label><input type="radio" name="import-mode" value="merge" checked/> Merge (keep existing)</label>
-              <label><input type="radio" name="import-mode" value="replace"/> Replace all</label>
+              <label><input type="radio" name="import-mode" value="merge" checked/><span id="import-merge-label"> Merge (keep existing)</span></label>
+              <label><input type="radio" name="import-mode" value="replace"/><span id="import-replace-label"> Replace all</span></label>
             </div>
             <div id="import-status" style="display:none" class="import-status"></div>
           </div>
@@ -97,27 +102,27 @@
         <!-- Settings view -->
         <div id="view-settings" style="display:none">
           <div class="view-card">
-            <h2>Extension Settings</h2>
+            <h2 id="settings-title">Extension Settings</h2>
             <div class="setting-row">
               <label class="setting-label">
                 <input type="checkbox" id="setting-auto-filter" checked/>
-                Auto-filter prompts by detected SAP tool
+                <span id="setting-auto-filter-label">Auto-filter prompts by detected SAP tool</span>
               </label>
-              <p class="setting-hint">When enabled, the overlay shows only prompts matching the current SAP solution.</p>
+              <p class="setting-hint" id="setting-auto-filter-hint">When enabled, the overlay shows only prompts matching the current SAP solution.</p>
             </div>
             <div class="setting-row">
-              <label class="setting-label">Keyboard shortcut</label>
+              <label class="setting-label" id="setting-shortcut-label">Keyboard shortcut</label>
               <p class="setting-hint">Use <kbd>Ctrl+Shift+Space</kbd> to toggle the overlay on any page. Change in <a href="edge://extensions/shortcuts" target="_blank">Edge extension shortcuts</a>.</p>
             </div>
             <button class="action-btn primary" id="do-save-settings">Save Settings</button>
           </div>
 
           <!-- Admin: Solutions -->
-          <div class="view-card admin-card" id="admin-solutions-card">
+          <div class="view-card admin-card">
             <div class="admin-card-header">
               <div>
-                <h2>Solutions</h2>
-                <p>Manage the list of SAP solutions available when creating or filtering prompts.</p>
+                <h2 id="admin-sol-title">Solutions</h2>
+                <p id="admin-sol-desc">Manage the list of SAP solutions available when creating or filtering prompts.</p>
               </div>
               <button class="action-btn primary" id="btn-add-solution">+ Add Solution</button>
             </div>
@@ -125,11 +130,11 @@
           </div>
 
           <!-- Admin: Story Flows -->
-          <div class="view-card admin-card" id="admin-flows-card">
+          <div class="view-card admin-card">
             <div class="admin-card-header">
               <div>
-                <h2>Story Flows</h2>
-                <p>Manage the end-to-end demo story flows used to organise and filter prompts.</p>
+                <h2 id="admin-flow-title">Story Flows</h2>
+                <p id="admin-flow-desc">Manage the end-to-end demo story flows used to organise and filter prompts.</p>
               </div>
               <button class="action-btn primary" id="btn-add-flow">+ Add Story Flow</button>
             </div>
@@ -137,11 +142,11 @@
           </div>
 
           <!-- Admin: Landscapes -->
-          <div class="view-card admin-card" id="admin-landscapes-card">
+          <div class="view-card admin-card">
             <div class="admin-card-header">
               <div>
-                <h2>Landscapes</h2>
-                <p>Manage the shared landscape catalogue (tenant URLs, system names) available when tagging prompts.</p>
+                <h2 id="admin-ls-title">Landscapes</h2>
+                <p id="admin-ls-desc">Manage the shared landscape catalogue (tenant URLs, system names) available when tagging prompts.</p>
               </div>
               <button class="action-btn primary" id="btn-add-landscape-admin">+ Add Landscape</button>
             </div>
@@ -165,59 +170,47 @@
           <input type="text" id="f-title" placeholder="Short display name…" maxlength="120"/>
         </div>
         <div class="field-row">
-          <label>Prompt Body <span class="req">*</span></label>
-          <textarea id="f-body" placeholder="The full prompt text that will be copied to clipboard…" rows="6"></textarea>
+          <div class="body-tabs">
+            <button class="body-tab active-tab" id="f-body-tab-en">EN</button>
+            <button class="body-tab" id="f-body-tab-fr">FR</button>
+            <span class="body-tab-hint">EN is required · FR is optional</span>
+          </div>
+          <textarea id="f-body-en" placeholder="The full prompt text that will be copied to clipboard…" rows="6"></textarea>
+          <textarea id="f-body-fr" placeholder="Le texte complet du prompt qui sera copié dans le presse-papier…" rows="6" style="display:none"></textarea>
           <span class="char-count" id="f-body-count">0 chars</span>
         </div>
         <div class="field-row-2col">
           <div class="field-col">
-            <label>Story Flow</label>
+            <label id="f-story-flow-label">Story Flow</label>
             <select id="f-story-flow">
               <option value="">— Select —</option>
-              <option>Procure-to-Pay</option>
-              <option>Order-to-Cash</option>
-              <option>Plan-to-Inventory</option>
-              <option>Hire-to-Retire</option>
-              <option>Record-to-Report</option>
-              <option>Lead-to-Cash</option>
-              <option>Design-to-Operate</option>
-              <option>Other</option>
             </select>
           </div>
           <div class="field-col">
-            <label>Favorite</label>
+            <label id="f-favorite-label">Favorite</label>
             <label class="toggle-label">
-              <input type="checkbox" id="f-favorite"/> Mark as Favorite ★
+              <input type="checkbox" id="f-favorite"/> <span id="f-mark-fav-text">Mark as Favorite ★</span>
             </label>
           </div>
         </div>
         <div class="field-row">
-          <label>Solutions</label>
-          <div class="checkbox-group" id="f-solutions">
-            <label><input type="checkbox" value="S/4HANA"/> S/4HANA</label>
-            <label><input type="checkbox" value="IBP"/> IBP</label>
-            <label><input type="checkbox" value="Ariba"/> Ariba</label>
-            <label><input type="checkbox" value="Joule"/> Joule</label>
-            <label><input type="checkbox" value="Joule Studio"/> Joule Studio</label>
-            <label><input type="checkbox" value="BTP"/> BTP</label>
-            <label><input type="checkbox" value="Datasphere"/> Datasphere</label>
-            <label><input type="checkbox" value="SuccessFactors"/> SuccessFactors</label>
-          </div>
+          <label id="f-solutions-label">Solutions</label>
+          <div class="checkbox-group" id="f-solutions"></div>
         </div>
         <div class="field-row">
-          <label>Tags <span class="hint">(press Enter to add)</span></label>
+          <label>Tags <span class="hint" id="f-tags-hint">(press Enter to add)</span></label>
           <div class="tag-input-wrap" id="tag-input-wrap">
             <input type="text" id="f-tag-input" placeholder="Add a tag…"/>
           </div>
           <div id="f-tags-preview" class="tags-preview"></div>
         </div>
         <div class="field-row">
-          <label>Landscapes <span class="hint">(tenant URLs / system names)</span></label>
+          <label>Landscapes <span class="hint" id="f-landscapes-hint">(tenant URLs / system names)</span></label>
           <div id="f-landscapes-list"></div>
           <button type="button" class="add-row-btn" id="f-add-landscape">+ Add Landscape</button>
         </div>
         <div class="field-row">
-          <label>Notes <span class="hint">(internal, not copied)</span></label>
+          <label>Notes <span class="hint" id="f-notes-hint">(internal, not copied)</span></label>
           <textarea id="f-notes" placeholder="Demo tips, context notes…" rows="3"></textarea>
         </div>
       </div>

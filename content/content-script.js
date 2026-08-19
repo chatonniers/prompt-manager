@@ -71,6 +71,7 @@
 
   let _prompts = [];
   let _context = null;
+  let _lang = "en";
 
   async function showOverlay() {
     ensureOverlay();
@@ -78,6 +79,10 @@
     toastEl   = document.getElementById(TOAST_ID);
 
     _context = detectSAPContext(window.location.href);
+
+    chrome.runtime.sendMessage({ type: "GET_SETTINGS" }, (settings) => {
+      _lang = settings?.lang || "en";
+    });
 
     chrome.runtime.sendMessage({ type: "GET_PROMPTS" }, (prompts) => {
       _prompts = prompts || [];
@@ -180,11 +185,17 @@
     const tags = (p.tags || []).slice(0, 2).map(t => `<span class="sap-pm-pill">#${t}</span>`).join("");
     const favClass = p.isFavorite ? "active" : "";
     const favTitle = p.isFavorite ? "Remove from favorites" : "Add to favorites";
+    const body = (_lang === "fr" && p.body_fr) ? p.body_fr : p.body;
+    const langBadge = _lang === "fr"
+      ? (p.body_fr
+          ? `<span class="sap-pm-pill" style="background:#F0F5EF;color:#188918">FR</span>`
+          : `<span class="sap-pm-pill" style="background:#FFF8ED;color:#E76500">EN only</span>`)
+      : "";
     return `
-      <div class="sap-pm-card" data-id="${escHtml(p.id)}" title="${escHtml(p.body.slice(0, 120))}">
+      <div class="sap-pm-card" data-id="${escHtml(p.id)}" title="${escHtml(body.slice(0, 120))}">
         <div class="sap-pm-card-body">
           <div class="sap-pm-card-title">${escHtml(p.title)}</div>
-          <div class="sap-pm-card-meta">${solutions}${flow}${tags}</div>
+          <div class="sap-pm-card-meta">${solutions}${flow}${tags}${langBadge}</div>
         </div>
         <button class="sap-pm-card-fav ${favClass}" title="${favTitle}">★</button>
         <div class="sap-pm-card-copy-hint">Click to copy</div>
@@ -198,7 +209,8 @@
   function copyPrompt(id) {
     const p = _prompts.find(x => x.id === id);
     if (!p) return;
-    navigator.clipboard.writeText(p.body).then(() => {
+    const body = (_lang === "fr" && p.body_fr) ? p.body_fr : p.body;
+    navigator.clipboard.writeText(body).then(() => {
       showToast("✓ Copied to clipboard");
       chrome.runtime.sendMessage({ type: "INCREMENT_USAGE", id });
       hideOverlay();
