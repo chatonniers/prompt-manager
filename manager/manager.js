@@ -418,8 +418,8 @@ function cardHTML(p) {
   const favClass = p.isFavorite ? "active" : "";
   const usage = p.usageCount ? `<div class="usage-hint">Used ${p.usageCount}× ${p.lastUsedAt ? "· " + relTime(p.lastUsedAt) : ""}</div>` : "";
   const body = (currentLang === "fr" && p.body_fr) ? p.body_fr : p.body;
-  const hasTranslation = p.body_fr ? "" : `<span class="pill lang-missing" title="No French translation yet">EN only</span>`;
   const langBadge = currentLang === "fr" ? (p.body_fr ? `<span class="pill lang-badge fr">FR</span>` : `<span class="pill lang-missing">EN only</span>`) : "";
+  const attachBadge = (p.attachments?.length) ? `<span class="attach-count-pill">📎 ${p.attachments.length}</span>` : "";
   return `
     <div class="prompt-card" data-id="${esc(p.id)}">
       <div class="prompt-card-header">
@@ -427,7 +427,7 @@ function cardHTML(p) {
         <button class="prompt-card-fav ${favClass}" title="Toggle favorite">★</button>
       </div>
       <div class="prompt-card-body-preview">${esc(body)}</div>
-      <div class="prompt-card-meta">${sols}${flow}${tags}${langBadge}</div>
+      <div class="prompt-card-meta">${sols}${flow}${tags}${langBadge}${attachBadge}</div>
       ${usage}
       <div class="prompt-card-actions">
         <button class="card-action-btn copy">${t("copy")}</button>
@@ -474,10 +474,14 @@ async function toggleFav(id) {
 // ── Edit modal ──────────────────────────────────────────────────────────────
 let currentTags = [];
 let currentLandscapes = [];
+let pendingAttachments = []; // new files queued before save: [{file, id}]
+let existingAttachments = []; // already-saved attachments for editing prompt
 
 function openEdit(id) {
   const p = id ? allPrompts.find(x => x.id === id) : null;
   editingId = id || null;
+  pendingAttachments  = [];
+  existingAttachments = [];
   document.getElementById("modal-title").textContent = p ? t("edit") + " Prompt" : t("newPrompt").replace("+ ","");
 
   document.getElementById("f-title").value    = p?.title || "";
@@ -486,21 +490,17 @@ function openEdit(id) {
   document.getElementById("f-favorite").checked = p?.isFavorite || false;
   document.getElementById("f-notes").value    = p?.notes || "";
 
-  // Show EN tab by default
   switchBodyTab("en");
 
-  // Update modal labels
   document.getElementById("modal-cancel").textContent = t("cancel");
   document.getElementById("modal-save").textContent   = t("save");
   document.getElementById("f-body-tab-en").textContent = t("bodyTabEn");
   document.getElementById("f-body-tab-fr").textContent = t("bodyTabFr");
 
-  // Rebuild Story Flow dropdown from catalog
   const sfSelect = document.getElementById("f-story-flow");
   sfSelect.innerHTML = `<option value="">${t("selectFlow")}</option>` +
     STORY_FLOWS.map(f => `<option${p?.storyFlow === f ? " selected" : ""}>${esc(f)}</option>`).join("");
 
-  // Rebuild Solutions checkboxes from catalog
   const solGroup = document.getElementById("f-solutions");
   solGroup.innerHTML = SOLUTIONS.map(s => `
     <label>
@@ -508,15 +508,24 @@ function openEdit(id) {
       ${esc(s)}
     </label>`).join("");
 
-  // Tags
   currentTags = [...(p?.tags || [])];
   renderTagChips();
 
-  // Landscapes
   const allLandscapes = [...new Set([...LANDSCAPES, ...(p?.landscapes||[])])];
   currentLandscapes = [...(p?.landscapes || [])];
   renderLandscapeRows(allLandscapes);
 
+  // Load existing attachments for this prompt
+  if (id) {
+    AttachmentsDB.getForPrompt(id).then(attachments => {
+      existingAttachments = attachments;
+      renderAttachmentList();
+    });
+  } else {
+    renderAttachmentList();
+  }
+
+  bindAttachmentDrop();
   updateBodyCount();
   document.getElementById("modal-backdrop").style.display = "flex";
   document.getElementById("f-title").focus();
@@ -576,9 +585,124 @@ function renderLandscapeRows(catalogLandscapes) {
   });
 }
 
+function bindAttachmentDrop() {
+  const zone  = document.getElementById("f-attachments-drop");
+  const input = document.getElementById("f-attach-input");
+  if (!zone) return;
+
+  // Reset listeners by cloning
+  const fresh = zone.cloneNode(true);
+  zone.parentNode.replaceChild(fresh, zone);
+  const newInput = document.getElementById("f-attach-input");
+
+  fresh.addEventListener("dragover",  (e) => { e.preventDefault(); fresh.classList.add("drag-over"); });
+  fresh.addEventListener("dragleave", ()  => fresh.classList.remove("drag-over"));
+  fresh.addEventListener("drop", (e) => {
+    e.preventDefault();
+    fresh.classList.remove("drag-over");
+    addFiles(Array.from(e.dataTransfer.files));
+  });
+
+  newInput.addEventListener("change", (e) => {
+    addFiles(Array.from(e.target.files));
+    newInput.value = "";
+  });
+}
+
+function addFiles(files) {
+  const MAX = 50 * 1024 * 1024;
+  files.forEach(file => {
+    if (file.size > MAX) { showToast(`⚠ ${file.name} exceeds 50 MB`); return; }
+    pendingAttachments.push({ id: crypto.randomUUID(), file });
+    renderAttachmentList();
+  });
+}
+
+function fileIcon(type) {
+  if (type.includes("zip") || type.includes("compressed")) return "🗜";
+  if (type.includes("pdf"))   return "📄";
+  if (type.includes("image")) return "🖼";
+  if (type.includes("video")) return "🎬";
+  if (type.includes("audio")) return "🎵";
+  if (type.includes("text"))  return "📝";
+  return "📎";
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+function renderAttachmentList() {
+  const list = document.getElementById("f-attachments-list");
+  if (!list) return;
+  let html = "";
+
+  existingAttachments.forEach(a => {
+    html += `<div class="attach-row" data-id="${esc(a.id)}" data-kind="existing">
+      <span class="attach-icon">${fileIcon(a.type)}</span>
+      <span class="attach-name" title="${esc(a.name)}">${esc(a.name)}</span>
+      <span class="attach-size">${fmtSize(a.size)}</span>
+      <button class="attach-download" title="Download">⬇</button>
+      <button class="attach-remove"   title="Remove">×</button>
+    </div>`;
+  });
+
+  pendingAttachments.forEach(({ id, file }) => {
+    html += `<div class="attach-row" data-id="${esc(id)}" data-kind="pending">
+      <span class="attach-icon">${fileIcon(file.type)}</span>
+      <span class="attach-name" title="${esc(file.name)}">${esc(file.name)}</span>
+      <span class="attach-size">${fmtSize(file.size)}</span>
+      <span class="attach-size" style="color:var(--pm-success)">pending…</span>
+      <button class="attach-remove" title="Remove">×</button>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+
+  list.querySelectorAll(".attach-remove").forEach(btn => {
+    const row  = btn.closest(".attach-row");
+    const id   = row.dataset.id;
+    const kind = row.dataset.kind;
+    btn.addEventListener("click", () => {
+      if (kind === "existing") {
+        existingAttachments = existingAttachments.filter(a => a.id !== id);
+        // Mark for deletion on save
+        if (!pendingDeletes) pendingDeletes = [];
+        pendingDeletes.push(id);
+      } else {
+        pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+      }
+      renderAttachmentList();
+    });
+  });
+
+  list.querySelectorAll(".attach-download").forEach(btn => {
+    const id = btn.closest(".attach-row").dataset.id;
+    btn.addEventListener("click", () => downloadAttachment(id));
+  });
+}
+
+let pendingDeletes = [];
+
+async function downloadAttachment(id) {
+  const a = await AttachmentsDB.get(id);
+  if (!a) return;
+  const blob = new Blob([a.data], { type: a.type });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = a.name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function closeModal() {
   document.getElementById("modal-backdrop").style.display = "none";
   editingId = null;
+  pendingAttachments  = [];
+  existingAttachments = [];
+  pendingDeletes      = [];
 }
 
 async function savePrompt() {
@@ -595,16 +719,32 @@ async function savePrompt() {
 
   const now = new Date().toISOString();
   const existing = editingId ? allPrompts.find(p => p.id === editingId) : null;
+  const promptId = editingId || crypto.randomUUID();
+
+  // Save pending new attachments to IndexedDB
+  await Promise.all(pendingAttachments.map(({ id, file }) =>
+    file.arrayBuffer().then(data => AttachmentsDB.save({
+      id, promptId, name: file.name, type: file.type || "application/octet-stream", size: file.size, data
+    }))
+  ));
+
+  // Delete removed existing attachments
+  await Promise.all(pendingDeletes.map(id => AttachmentsDB.delete(id)));
+
+  // Build updated attachments metadata for the prompt
+  const savedAttachments = await AttachmentsDB.getForPrompt(promptId);
+  const attachmentsMeta  = savedAttachments.map(({ id, name, type, size }) => ({ id, name, type, size }));
 
   const prompt = {
-    id:         editingId || crypto.randomUUID(),
+    id:          promptId,
     title, body, body_fr: bodyFr || null, notes, storyFlow, solutions, landscapes,
-    tags:       currentTags,
+    tags:        currentTags,
     isFavorite,
-    usageCount: existing?.usageCount || 0,
-    lastUsedAt: existing?.lastUsedAt || null,
-    createdAt:  existing?.createdAt || now,
-    updatedAt:  now
+    attachments: attachmentsMeta,
+    usageCount:  existing?.usageCount || 0,
+    lastUsedAt:  existing?.lastUsedAt || null,
+    createdAt:   existing?.createdAt || now,
+    updatedAt:   now
   };
 
   await StorageAPI.upsertPrompt(prompt);
@@ -628,6 +768,7 @@ function confirmDelete(id) {
 async function doDelete() {
   if (!pendingDeleteId) return;
   await StorageAPI.deletePrompt(pendingDeleteId);
+  await AttachmentsDB.deleteForPrompt(pendingDeleteId);
   allPrompts = await StorageAPI.getAllPrompts();
   buildSidebarFlows();
   buildSidebarSolutions();

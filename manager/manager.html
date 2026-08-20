@@ -224,6 +224,14 @@
           <label>Notes <span class="hint" id="f-notes-hint">(internal, not copied)</span></label>
           <textarea id="f-notes" placeholder="Demo tips, context notes…" rows="3"></textarea>
         </div>
+        <div class="field-row">
+          <label>Attachments <span class="hint">(files / ZIP — stored locally)</span></label>
+          <div id="f-attachments-drop" class="attach-drop-zone">
+            <span class="attach-drop-hint">Drop files here or <label for="f-attach-input" class="attach-browse-link">browse</label></span>
+            <input type="file" id="f-attach-input" multiple style="display:none"/>
+          </div>
+          <div id="f-attachments-list" class="attach-list"></div>
+        </div>
       </div>
       <div id="modal-footer">
         <button class="action-btn" id="modal-cancel">Cancel</button>
@@ -244,6 +252,7 @@
   </div>
 
   <script src="../shared/storage.js"></script>
+  <script src="../shared/attachments.js"></script>
   <script src="manager.js"></script>
 </body>
 </html>

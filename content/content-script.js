@@ -240,11 +240,14 @@
           ? `<span class="sap-pm-pill" style="background:#F0F5EF;color:#188918">FR</span>`
           : `<span class="sap-pm-pill" style="background:#FFF8ED;color:#E76500">EN only</span>`)
       : "";
+    const attachBadge = (p.attachments?.length)
+      ? `<span class="sap-pm-pill" style="background:#F0F0FF;color:#6366F1">📎 ${p.attachments.length}</span>`
+      : "";
     return `
       <div class="sap-pm-card" data-id="${escHtml(p.id)}" title="${escHtml(body.slice(0, 120))}">
         <div class="sap-pm-card-body">
           <div class="sap-pm-card-title">${escHtml(p.title)}</div>
-          <div class="sap-pm-card-meta">${solutions}${flow}${tags}${langBadge}</div>
+          <div class="sap-pm-card-meta">${solutions}${flow}${tags}${langBadge}${attachBadge}</div>
         </div>
         <button class="sap-pm-card-fav ${favClass}" title="${favTitle}">★</button>
         <div class="sap-pm-card-copy-hint">Click to copy</div>

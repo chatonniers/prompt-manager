@@ -65,7 +65,15 @@ const StorageAPI = {
 
   async exportAll() {
     const [prompts, settings, catalog] = await Promise.all([this.getAllPrompts(), this.getSettings(), this.getCatalog()]);
-    return { prompts, settings, catalog, exportVersion: "1.0", exportedAt: new Date().toISOString() };
+    let attachments = [];
+    if (typeof AttachmentsDB !== "undefined") {
+      const raw = await AttachmentsDB.getAll();
+      attachments = raw.map(a => ({
+        id: a.id, promptId: a.promptId, name: a.name, type: a.type, size: a.size,
+        data: AttachmentsDB.bufToBase64(a.data)
+      }));
+    }
+    return { prompts, settings, catalog, attachments, exportVersion: "1.1", exportedAt: new Date().toISOString() };
   },
 
   async importAll(data, mode = "merge") {
@@ -73,6 +81,11 @@ const StorageAPI = {
     if (mode === "replace") {
       await chrome.storage.local.set({ prompts: data.prompts });
       if (data.catalog) await this.saveCatalog(data.catalog);
+      if (data.attachments) {
+        await Promise.all(data.attachments.map(a =>
+          AttachmentsDB.save({ ...a, data: AttachmentsDB.base64ToBuf(a.data) })
+        ));
+      }
       return { imported: data.prompts.length, skipped: 0 };
     }
     const existing = await this.getAllPrompts();
@@ -86,6 +99,13 @@ const StorageAPI = {
         storyFlows: [...new Set([...cur.storyFlows, ...(data.catalog.storyFlows || [])])],
         landscapes: [...new Set([...cur.landscapes,  ...(data.catalog.landscapes || [])])]
       });
+    }
+    if (data.attachments) {
+      const addedIds = new Set(toAdd.map(p => p.id));
+      const attachsToImport = data.attachments.filter(a => addedIds.has(a.promptId));
+      await Promise.all(attachsToImport.map(a =>
+        AttachmentsDB.save({ ...a, data: AttachmentsDB.base64ToBuf(a.data) })
+      ));
     }
     return { imported: toAdd.length, skipped: data.prompts.length - toAdd.length };
   }
